@@ -1,0 +1,56 @@
+project_name: warden
+
+builds:
+  - dir: warden
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 7
+    ldflags:
+      - -s -w -X github.com/repowarden/cli/warden/cmd.version={{ .Version }} -extldflags "-static"
+
+archives:
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}hf{{ end }}"
+    files:
+      - LICENSE
+      - README.md
+    replacements:
+      darwin: macos
+
+nfpms:
+  - file_name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Arch }}{{ if .Arm }}hf{{ end }}"
+    vendor: "RepoWarden"
+    homepage: "https://RepoWarden.com"
+    maintainer: "Ricardo N Feliciano <Ricardo@Feliciano.Tech>"
+    description: "Audit your git repositories based on policy."
+    license: "MIT"
+    formats:
+      - deb
+    bindir: /usr/bin
+
+brews:
+  - tap:
+      owner: felicianotech
+      name: homebrew-tap
+    commit_author:
+      name: "Ricardo N Feliciano (FelicianoTech)"
+      email: "Ricardo@Feliciano.Tech"
+    folder: Formula
+    homepage: "https://RepoWarden.com"
+    description: "Audit your git repositories based on policy."
+    license: "MIT"
+    test: |
+      system "#{bin}/warden", "help"
+
+checksum:
+  name_template: "{{ .ProjectName }}-v{{ .Version }}-checksums.txt"

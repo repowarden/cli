@@ -1,0 +1,5 @@
+warden.yml
+
+# Binaries
+/warden/warden
+/dist/
