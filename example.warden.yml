@@ -1,0 +1,11 @@
+repositories:
+  - http://github.com/felicianotech/sonar
+  - https://github.com/felicianotech/para
+  - https://github.com/strawberryssg/strawberry-v0
+defaultBranch: "trunk"
+archived: false
+license: "mit"
+labels:
+  - "high-priority"
+  - "bug"
+labelStrategy: "available"
