@@ -3,6 +3,7 @@ version: 2.1
 orbs:
   gor: hubci/goreleaser@1.0
   osd: circleci/os-detect@0.3.0
+  codecov: codecov/codecov@3.2
 
 executors:
   linux-docker:
@@ -106,14 +107,11 @@ jobs:
             cd ./warden
             mkdir junit
             gotestsum -- -coverprofile=coverage.txt -covermode=atomic ./...
-            bash <(curl -s https://codecov.io/bash)
       - store_test_results:
           path: junit
       - store_artifacts:
           path: junit/unit-tests.xml
-      - run:
-          name: "Upload to Codecov"
-          command: cd warden && bash <(curl -s https://codecov.io/bash)
+      - codecov/upload
       - save_cache:
           key: go-mod-v2-{{ checksum "go.sum" }}
           paths:
