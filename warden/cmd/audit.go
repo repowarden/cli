@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strings"
 
 	"github.com/google/go-github/v48/github"
+	"github.com/repowarden/cli/warden/vcsurl"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -79,13 +79,14 @@ var (
 			tc := oauth2.NewClient(context.Background(), ts)
 			client := github.NewClient(tc)
 
-			for _, repo := range rule.Repos {
+			for _, repoURL := range rule.Repos {
 
-				urlPieces := strings.Split(repo, "/")
-				org := urlPieces[3]
-				name := urlPieces[4]
+				repo, err := vcsurl.Parse(repoURL)
+				if err != nil {
+					return fmt.Errorf("The following URL cannot be parsed: %s", repoURL)
+				}
 
-				repoResp, _, _ := client.Repositories.Get(context.Background(), org, name)
+				repoResp, _, _ := client.Repositories.Get(context.Background(), repo.Owner, repo.Name)
 
 				if *repoResp.Archived != rule.Archived {
 					continue
@@ -93,7 +94,7 @@ var (
 
 				if *repoResp.DefaultBranch != rule.DefaultBranch {
 					res = append(res, RuleError{
-						Repo{org: org, repo: name},
+						Repo{org: repo.Owner, repo: repo.Name},
 						ERR_DEFAULT_BRANCH,
 					})
 
@@ -103,7 +104,7 @@ var (
 				// if license is to be checked...
 				if rule.License != "" && *repoResp.License.Key != rule.License {
 					res = append(res, RuleError{
-						Repo{org: org, repo: name},
+						Repo{org: repo.Owner, repo: repo.Name},
 						ERR_LICENSE,
 					})
 				}
@@ -111,7 +112,7 @@ var (
 				// if label checks are to happen
 				if len(rule.Labels) > 0 {
 
-					labels, _, err := client.Issues.ListLabels(context.Background(), org, name, nil)
+					labels, _, err := client.Issues.ListLabels(context.Background(), repo.Owner, repo.Name, nil)
 					if err != nil {
 						return err
 					}
@@ -132,7 +133,7 @@ var (
 
 							if !found {
 								res = append(res, RuleError{
-									Repo{org: org, repo: name + " label:" + label},
+									Repo{org: repo.Owner, repo: repo.Name + " label:" + label},
 									ERR_LABEL_MISSING,
 								})
 							}
@@ -153,7 +154,7 @@ var (
 
 							if !found {
 								res = append(res, RuleError{
-									Repo{org: org, repo: name + " label:" + iLabel.GetName()},
+									Repo{org: repo.Owner, repo: repo.Name + " label:" + iLabel.GetName()},
 									ERR_LABEL_EXTRA,
 								})
 							}
