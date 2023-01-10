@@ -29,6 +29,7 @@ workflows:
     jobs:
       - test
       - gor/release:
+          name: goreleaser-snapshot
           version: "1.14.1"
           go-version: "1.19.4"
           dry-run: true
@@ -39,7 +40,7 @@ workflows:
                   - "dist"
       - test-with-images:
           requires:
-            - gor/release
+            - goreleaser-snapshot
           matrix:
             parameters:
               image:
@@ -49,10 +50,10 @@ workflows:
                 - macos
       - test-with-windows:
           requires:
-            - gor/release
+            - goreleaser-snapshot
       - functional-tests:
           requires:
-            - gor/release
+            - goreleaser-snapshot
   release-wf:
     jobs:
       - test:
@@ -63,6 +64,7 @@ workflows:
               # SemVer regex
               only: /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
       - gor/release:
+          name: goreleaser-publish
           version: "1.14.1"
           go-version: "1.19.4"
           filters: *semverFilters
@@ -74,7 +76,7 @@ workflows:
           context: goreleaser-ctx
       - deb-publish:
           requires:
-            - gor/release
+            - goreleaser-publish
           filters: *semverFilters
 
 jobs:
@@ -153,6 +155,7 @@ jobs:
           at: .
       - add_ssh_keys
       - run: |
+          mkdir -p ~/.ssh
           echo 'pkg.atl.revidian.net ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBE16slz1okRPeUhxIpzBCn9rHqjk51ylxEYlYXvblswcxOQ0rPyAX6N8Bd2pnsh99xce/jaX2KJHPLPCc+zAXTg= root@li361-16' >> ~/.ssh/known_hosts
       - run: |
           ssh pkg@pkg.atl.revidian.net "mkdir ~/incoming/warden-${CIRCLE_TAG}"
