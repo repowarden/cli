@@ -56,21 +56,16 @@ workflows:
   release-wf:
     jobs:
       - test:
-          filters:
+          filters: &semverFilters
             branches:
               ignore: /.*/
             tags:
-              # Simplified SemVer regex
-              only: /^v\d+\.\d+\.\d+$/
+              # SemVer regex
+              only: /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
       - gor/release:
           version: "1.14.1"
           go-version: "1.19.4"
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              # Simplified SemVer regex
-              only: /^v\d+\.\d+\.\d+$/
+          filters: *semverFilters
           post-steps:
             - persist_to_workspace:
                 root: "."
@@ -80,12 +75,7 @@ workflows:
       - deb-publish:
           requires:
             - gor/release
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              # Simplified SemVer regex
-              only: /^v\d+\.\d+\.\d+$/
+          filters: *semverFilters
 
 jobs:
   test:
