@@ -7,6 +7,7 @@ import (
 
 var protocols = [...]string{
 	"git",
+	"http",
 	"https",
 	"ssh",
 }
@@ -43,6 +44,11 @@ func Parse(input string) (*Repository, error) {
 	if strings.HasPrefix(input, "https://") {
 
 		input = input[8:]
+		repo.Host = strings.Split(input, "/")[0]
+		input = input[len(repo.Host)+1:]
+	} else if strings.HasPrefix(input, "http://") {
+
+		input = input[7:]
 		repo.Host = strings.Split(input, "/")[0]
 		input = input[len(repo.Host)+1:]
 	}
