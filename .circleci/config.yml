@@ -83,8 +83,6 @@ jobs:
   test:
     docker:
       - image: cimg/go:1.19.4
-    environment:
-      GOTESTSUM_JUNITFILE: "junit/unit-tests.xml"
     steps:
       - checkout
       - restore_cache:
@@ -98,9 +96,9 @@ jobs:
           command: |
             cd ./warden
             mkdir junit
-            gotestsum -- -coverprofile=coverage.txt -covermode=atomic ./...
+            gotestsum --junitfile=junit/unit-tests.xml -- -coverprofile=coverage.txt -covermode=atomic ./...
       - store_test_results:
-          path: junit
+          path: warden/junit
       - store_artifacts:
           path: junit/unit-tests.xml
       - codecov/upload
