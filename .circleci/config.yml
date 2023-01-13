@@ -90,15 +90,17 @@ jobs:
             - go-mod-v2-{{ checksum "go.sum" }}
       - run:
           name: "Download Dependancies"
-          command: cd warden && go mod download
+          command: |
+            go mod download
+            curl -sSL "https://github.com/magefile/mage/releases/download/v1.14.0/mage_1.14.0_Linux-64bit.tar.gz" | sudo tar -xz --no-same-owner -C /usr/local/bin mage
+            mage --version
       - run:
           name: "Run Tests & Coverage"
           command: |
-            cd ./warden
             mkdir junit
-            gotestsum --junitfile=junit/unit-tests.xml -- -coverprofile=coverage.txt -covermode=atomic ./...
+            mage test
       - store_test_results:
-          path: warden/junit
+          path: junit
       - store_artifacts:
           path: junit/unit-tests.xml
       - codecov/upload
