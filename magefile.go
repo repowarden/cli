@@ -13,10 +13,20 @@ func Install() error {
 		return err
 	}
 
-	return sh.Run("go", "install", "./...")
+	return sh.Run("go", "install", "./warden")
 }
 
 func Remove() error {
 
 	return sh.Run("go", "clean", "-i", "github.com/repowarden/cli/warden")
+}
+
+func Test() error {
+
+	return sh.Run("gotestsum", "./...")
+}
+
+func TestCI() error {
+
+	return sh.Run("gotestsum", "--junitfile=junit/unit-tests.xml", "--", "-coverprofile=coverage.txt", "-covermode=atomic", "./...")
 }
