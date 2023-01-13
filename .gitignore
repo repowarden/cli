@@ -1,4 +1,5 @@
 warden.yml
+warden.yaml
 
 # Binaries
 /warden/warden
