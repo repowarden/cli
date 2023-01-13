@@ -1,13 +1,18 @@
-repositories:
+repositories:  # any valid GitHub URL
   - http://github.com/felicianotech/sonar
   - https://github.com/felicianotech/para
   - https://github.com/strawberryssg/strawberry-v0
-defaultBranch: "trunk"
-archived: false
+defaultBranch: "trunk"  # most common is main, trunk, and master
+archived: false  # include archived repos in these rules?
 license:
   scope: "public"  # 'public', private, or all
   names: ["mit","agpl"]  # license slug as according to GitHub
 labels:
   - "high-priority"
   - "bug"
+# the label strategy determines the relationship between the labels listed
+# here and how we audit
+# available - the repo needs to have the labels listed. Any additional labels are fine
+# only - the repo should only have the labels listed. Any additional labels are not okay.
+#labelStrategy: "only"
 labelStrategy: "available"
