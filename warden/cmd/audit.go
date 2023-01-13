@@ -7,11 +7,13 @@ import (
 	"io/ioutil"
 	"log"
 
+	"golang.org/x/exp/slices"
+	"golang.org/x/oauth2"
+
 	"github.com/google/go-github/v48/github"
 	"github.com/repowarden/cli/warden/vcsurl"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v3"
 )
 
@@ -29,6 +31,11 @@ type Repo struct {
 	repo string
 }
 
+type LicenseRule struct {
+	Scope string   `yaml:"scope"`
+	Names []string `yaml:"names"`
+}
+
 type UserPermission struct {
 	Username   string `yaml:"user"`
 	Permission string `yaml:"permission"`
@@ -38,7 +45,7 @@ type Rule struct {
 	Repos          []string         `yaml:"repositories"`
 	DefaultBranch  string           `yaml:"defaultBranch"`
 	Archived       bool             `yaml:"archived"` // include archived repos in lookup?
-	License        string           `yaml:"license"`
+	License        *LicenseRule     `yaml:"license"`
 	Labels         []string         `yaml:"labels"`
 	LabelStrategy  string           `yaml:"labelStrategy"`
 	Access         []UserPermission `yaml:"access"`
@@ -88,25 +95,27 @@ var (
 
 				repoResp, _, _ := client.Repositories.Get(context.Background(), repo.Owner, repo.Name)
 
-				if *repoResp.Archived != rule.Archived {
+				if repoResp.GetArchived() != rule.Archived {
 					continue
 				}
 
-				if *repoResp.DefaultBranch != rule.DefaultBranch {
+				if repoResp.GetDefaultBranch() != rule.DefaultBranch {
 					res = append(res, RuleError{
 						Repo{org: repo.Owner, repo: repo.Name},
 						ERR_DEFAULT_BRANCH,
 					})
 
-					fmt.Printf("Error: The default branch should be %s, not %s.\n", rule.DefaultBranch, *repoResp.DefaultBranch)
+					fmt.Printf("Error: The default branch should be %s, not %s.\n", rule.DefaultBranch, repoResp.GetDefaultBranch())
 				}
 
 				// if license is to be checked...
-				if rule.License != "" && *repoResp.License.Key != rule.License {
-					res = append(res, RuleError{
-						Repo{org: repo.Owner, repo: repo.Name},
-						ERR_LICENSE,
-					})
+				if rule.License != nil && rule.License.Scope == repoResp.GetVisibility() || rule.License.Scope == "all" {
+					if !slices.Contains(rule.License.Names, repoResp.GetLicense().GetKey()) {
+						res = append(res, RuleError{
+							Repo{org: repo.Owner, repo: repo.Name},
+							ERR_LICENSE,
+						})
+					}
 				}
 
 				// if label checks are to happen

@@ -4,7 +4,9 @@ repositories:
   - https://github.com/strawberryssg/strawberry-v0
 defaultBranch: "trunk"
 archived: false
-license: "mit"
+license:
+  scope: "public"  # 'public', private, or all
+  names: ["mit","agpl"]  # license slug as according to GitHub
 labels:
   - "high-priority"
   - "bug"
