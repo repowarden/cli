@@ -98,7 +98,7 @@ jobs:
           name: "Run Tests & Coverage"
           command: |
             mkdir junit
-            mage test
+            mage testCI
       - store_test_results:
           path: junit
       - store_artifacts:

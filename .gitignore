@@ -1,5 +1,7 @@
 warden.yml
 
+coverage.txt
+
 # Binaries
 /warden/warden
 /dist/
