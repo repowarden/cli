@@ -10,6 +10,7 @@ func TestParse(t *testing.T) {
 		url string
 		org string
 	}{
+		{url: "http://github.com/felicianotech/sonar", org: "felicianotech"},
 		{url: "https://github.com/felicianotech/sonar", org: "felicianotech"},
 		{url: "https://github.com/felicianotech/sonar.git", org: "felicianotech"},
 		{url: "git@github.com:felicianotech/sonar.git", org: "felicianotech"},
