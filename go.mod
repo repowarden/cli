@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/google/go-github/v48 v48.2.0
 	github.com/magefile/mage v1.14.0
+	github.com/santhosh-tekuri/jsonschema/v5 v5.1.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
