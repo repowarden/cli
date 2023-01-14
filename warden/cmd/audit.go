@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 
 	"golang.org/x/exp/slices"
 	"golang.org/x/oauth2"
@@ -68,26 +66,7 @@ var (
 		Short: "Validates that 1 or more repos meet a set of rules",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			wardenFilePath := "warden."
-
-			_, err := os.Stat("warden.yml")
-			if os.IsNotExist(err) {
-
-				_, err := os.Stat("warden.yaml")
-				if os.IsNotExist(err) {
-					return fmt.Errorf("A Warden file was not located at ./warden.yml")
-				} else if err != nil {
-					return fmt.Errorf("There was a problem reading the Warden file.")
-				} else {
-					wardenFilePath = wardenFilePath + "yaml"
-				}
-			} else if err != nil {
-				return fmt.Errorf("There was a problem reading the Warden file.")
-			} else {
-				wardenFilePath = wardenFilePath + "yml"
-			}
-
-			rawRule, err := ioutil.ReadFile(wardenFilePath)
+			rawRule, err := loadWardenFile(wardenFileFl)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -213,5 +192,8 @@ var (
 )
 
 func init() {
+
+	AddWardenFileFlag(auditCmd)
+
 	rootCmd.AddCommand(auditCmd)
 }

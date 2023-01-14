@@ -4,7 +4,6 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -22,26 +21,7 @@ var (
 		Short: "Validates a Warden file to match the schema",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			wardenFilePath := "warden."
-
-			_, err := os.Stat("warden.yml")
-			if os.IsNotExist(err) {
-
-				_, err := os.Stat("warden.yaml")
-				if os.IsNotExist(err) {
-					return fmt.Errorf("A Warden file was not located at ./warden.yml")
-				} else if err != nil {
-					return fmt.Errorf("There was a problem reading the Warden file.")
-				} else {
-					wardenFilePath = wardenFilePath + "yaml"
-				}
-			} else if err != nil {
-				return fmt.Errorf("There was a problem reading the Warden file.")
-			} else {
-				wardenFilePath = wardenFilePath + "yml"
-			}
-
-			rawRule, err := ioutil.ReadFile(wardenFilePath)
+			rawRule, err := loadWardenFile(wardenFileFl)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -80,5 +60,8 @@ var (
 )
 
 func init() {
+
+	AddWardenFileFlag(validateCmd)
+
 	rootCmd.AddCommand(validateCmd)
 }
