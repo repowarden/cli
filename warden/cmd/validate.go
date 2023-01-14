@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"bytes"
+	_ "embed"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,6 +12,9 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
+
+//go:embed schema.json
+var schemaFile []byte
 
 var (
 	validateCmd = &cobra.Command{
@@ -41,7 +46,7 @@ var (
 				log.Fatal(err)
 			}
 
-			schemaFile, err := os.Open("schema.json")
+			schemaReader := bytes.NewReader(schemaFile)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -54,7 +59,7 @@ var (
 			}
 
 			compiler := jsonschema.NewCompiler()
-			if err := compiler.AddResource("schema.json", schemaFile); err != nil {
+			if err := compiler.AddResource("schema.json", schemaReader); err != nil {
 				log.Fatal(err)
 			}
 
