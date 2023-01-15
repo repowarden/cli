@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/spf13/cobra"
