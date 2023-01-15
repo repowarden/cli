@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   gor: hubci/goreleaser@1.0
-  osd: circleci/os-detect@0.3.0
+  osd: hubci/sphere@0.2
   codecov: codecov/codecov@3.2
 
 executors:
