@@ -9,7 +9,7 @@ import (
 	"golang.org/x/exp/slices"
 	"golang.org/x/oauth2"
 
-	"github.com/google/go-github/v48/github"
+	"github.com/google/go-github/v49/github"
 	"github.com/repowarden/cli/warden/vcsurl"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
