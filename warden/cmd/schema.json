@@ -47,6 +47,30 @@
 			"description": "The theory behind how to audit labels. 'available' - the repo needs to have the labels listed. Any additional labels are fine. 'only' - the repo should only have the labels listed. Additional labels are not okay.",
 			"type": "string",
 			"default": "available"
+		},
+		"access": {
+			"description": "An array of permission objects.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"user": {
+						"type": "string"
+					},
+					"permission": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"user",
+					"permission"
+				]
+				}
+		},
+		"accessStrategy": {
+			"description": "The theory behind how to audit access. 'available' - the repo needs to have the access listed. Any additional permissions are fine. 'only' - the repo should only have the access listed. Additional permissions are not okay.",
+			"type": "string",
+			"default": "available"
 		}
 	},
 	"required": [
