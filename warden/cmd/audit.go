@@ -173,6 +173,50 @@ var (
 
 				}
 
+				// if access permissions are to be checked...
+				if len(rule.Access) > 0 {
+
+					teams, _, err := client.Repositories.ListTeams(context.Background(), repo.Owner, repo.Name, nil)
+					if err != nil {
+						return err
+					}
+
+					if rule.AccessStrategy == "available" || rule.AccessStrategy == "" {
+
+						// for each team we're checking for
+						for _, user := range rule.Access {
+
+							found := false
+							matched := false
+
+							for _, team := range teams {
+
+								if user.Username == team.GetName() {
+
+									found = true
+
+									if user.Permission == team.GetPermission() {
+										matched = true
+									}
+								}
+							}
+
+							if !found {
+								res = append(res, RuleError{
+									Repo{org: repo.Owner, repo: repo.Name + " user:" + user.Username},
+									ERR_ACCESS_MISSING,
+								})
+							} else if !matched {
+								res = append(res, RuleError{
+									Repo{org: repo.Owner, repo: repo.Name + " user:" + user.Permission},
+									ERR_ACCESS_WRONG,
+								})
+							}
+						}
+					} else {
+						return errors.New("The accessStrategy of " + rule.AccessStrategy + " isn't valid.")
+					}
+				}
 			}
 
 			if len(res) > 0 {
