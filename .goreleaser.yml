@@ -54,3 +54,8 @@ brews:
 
 checksum:
   name_template: "{{ .ProjectName }}-v{{ .Version }}-checksums.txt"
+
+announce:
+  mastodon:
+    enabled: true
+    server: "https://nanobyte.cafe"
