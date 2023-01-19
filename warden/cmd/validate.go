@@ -20,7 +20,7 @@ var (
 		Short: "Validates a Warden file to match the schema",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			rawRule, err := loadWardenFile(wardenFileFl)
+			_, wardenFile, err := loadWardenFile(wardenFileFl)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -32,7 +32,7 @@ var (
 
 			var m interface{}
 
-			err = yaml.Unmarshal(rawRule, &m)
+			err = yaml.Unmarshal(wardenFile, &m)
 			if err != nil {
 				log.Fatal(err)
 			}

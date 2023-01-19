@@ -1,5 +1,5 @@
-warden.yml
-warden.yaml
+warden.y*ml
+repositories.y*ml
 
 coverage.txt
 

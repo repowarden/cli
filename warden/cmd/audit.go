@@ -13,7 +13,6 @@ import (
 	"github.com/repowarden/cli/warden/vcsurl"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -41,7 +40,6 @@ type UserPermission struct {
 }
 
 type Rule struct {
-	Repos          []string         `yaml:"repositories"`
 	DefaultBranch  string           `yaml:"defaultBranch"`
 	Archived       bool             `yaml:"archived"` // include archived repos in lookup?
 	License        *LicenseRule     `yaml:"license"`
@@ -49,6 +47,11 @@ type Rule struct {
 	LabelStrategy  string           `yaml:"labelStrategy"`
 	Access         []UserPermission `yaml:"access"`
 	AccessStrategy string           `yaml:"accessStrategy"`
+}
+
+type RepositoryDefinition struct {
+	URL   string `json:"url"`
+	Group string `json:"group"`
 }
 
 type RuleError struct {
@@ -66,15 +69,14 @@ var (
 		Short: "Validates that 1 or more repos meet a set of rules",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			rawRule, err := loadWardenFile(wardenFileFl)
+			var res []RuleError
+
+			repoDefs, _, err := loadRepositoriesFile(repositoriesFileFl)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			var rule Rule
-			var res []RuleError
-
-			err = yaml.Unmarshal(rawRule, &rule)
+			rule, _, err := loadWardenFile(wardenFileFl)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -85,11 +87,11 @@ var (
 			tc := oauth2.NewClient(context.Background(), ts)
 			client := github.NewClient(tc)
 
-			for _, repoURL := range rule.Repos {
+			for _, repoDef := range repoDefs {
 
-				repo, err := vcsurl.Parse(repoURL)
+				repo, err := vcsurl.Parse(repoDef.URL)
 				if err != nil {
-					return fmt.Errorf("The following URL cannot be parsed: %s", repoURL)
+					return fmt.Errorf("The following URL cannot be parsed: %s", repoDef.URL)
 				}
 
 				repoResp, _, _ := client.Repositories.Get(context.Background(), repo.Owner, repo.Name)
@@ -239,6 +241,7 @@ var (
 
 func init() {
 
+	AddRepositoriesFileFlag(auditCmd)
 	AddWardenFileFlag(auditCmd)
 
 	rootCmd.AddCommand(auditCmd)

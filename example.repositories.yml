@@ -1,0 +1,6 @@
+# any valid GitHub URL
+- url: "http://github.com/felicianotech/sonar"
+- url: "https://github.com/felicianotech/para"
+- url: "http://github.com/felicianotech/www.feliciano.tech"
+  group: "hugo"
+- url: "https://github.com/strawberryssg/strawberry-v0"
