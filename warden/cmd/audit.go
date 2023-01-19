@@ -226,6 +226,8 @@ var (
 				for _, err := range res {
 					fmt.Printf("- %s\n", err.Error())
 				}
+
+				return nil
 			}
 
 			fmt.Println("The audit completed successfully.")
