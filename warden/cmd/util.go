@@ -9,6 +9,43 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// loadPoliciesFile tries to intelligently choose a filepath for the
+// policiesfile and then return the unmarshalled struct. If customPath is not
+// empty, it will try to use that before the default filenames.
+func loadPoliciesFile(customPath string) (*PoliciesFile, []byte, error) {
+
+	var file PoliciesFile
+	var foundFile bool
+	var yamlContent []byte
+	var err error
+
+	possibleFilepaths := []string{"policies."}
+
+	if customPath != "" {
+		possibleFilepaths = append([]string{customPath}, possibleFilepaths...)
+	}
+
+	for _, path := range possibleFilepaths {
+
+		yamlContent, err = loadYAMLFile(path)
+		if err == nil {
+			foundFile = true
+			break
+		}
+	}
+
+	err = yaml.Unmarshal(yamlContent, &file)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if !foundFile {
+		return nil, nil, fmt.Errorf("A policies file was not found. Either './policies.yml' needs to be used or the '--policiesFile' flag set.")
+	}
+
+	return &file, yamlContent, nil
+}
+
 // loadRepositoriesFile tries to intelligently choose a filepath for the
 // Wardenfile and then return the unmarshalled struct. If customPath is not
 // empty, it will try to use that before the default filenames.
@@ -75,41 +112,4 @@ func loadYAMLFile(filepath string) ([]byte, error) {
 	}
 
 	return yamlContent, nil
-}
-
-// loadWardenFile tries to intelligently choose a filepath for the Wardenfile
-// and then return the unmarshalled struct. If customPath is not
-// empty, it will try to use that before the default filenames.
-func loadWardenFile(customPath string) (*Rule, []byte, error) {
-
-	var wardenFile Rule
-	var foundFile bool
-	var yamlContent []byte
-	var err error
-
-	possibleFilepaths := []string{"warden."}
-
-	if customPath != "" {
-		possibleFilepaths = append([]string{customPath}, possibleFilepaths...)
-	}
-
-	for _, path := range possibleFilepaths {
-
-		yamlContent, err = loadYAMLFile(path)
-		if err == nil {
-			foundFile = true
-			break
-		}
-	}
-
-	err = yaml.Unmarshal(yamlContent, &wardenFile)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if !foundFile {
-		return nil, nil, fmt.Errorf("A Warden File was not found. Either './warden.yml' needs to be used or the '--wardenFile' flag set.")
-	}
-
-	return &wardenFile, yamlContent, nil
 }

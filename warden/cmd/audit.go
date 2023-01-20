@@ -39,7 +39,7 @@ type UserPermission struct {
 	Permission string `yaml:"permission"`
 }
 
-type Rule struct {
+type PoliciesFile struct {
 	DefaultBranch  string           `yaml:"defaultBranch"`
 	Archived       bool             `yaml:"archived"` // include archived repos in lookup?
 	License        *LicenseRule     `yaml:"license"`
@@ -66,7 +66,7 @@ func (re *RuleError) Error() string {
 var (
 	auditCmd = &cobra.Command{
 		Use:   "audit",
-		Short: "Validates that 1 or more repos meet a set of rules",
+		Short: "Validates that 1 or more repos meet a set of policies",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			var res []RuleError
@@ -76,7 +76,7 @@ var (
 				log.Fatal(err)
 			}
 
-			rule, _, err := loadWardenFile(wardenFileFl)
+			policies, _, err := loadPoliciesFile(policiesFileFl)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -96,22 +96,22 @@ var (
 
 				repoResp, _, _ := client.Repositories.Get(context.Background(), repo.Owner, repo.Name)
 
-				if repoResp.GetArchived() != rule.Archived {
+				if repoResp.GetArchived() != policies.Archived {
 					continue
 				}
 
-				if repoResp.GetDefaultBranch() != rule.DefaultBranch {
+				if repoResp.GetDefaultBranch() != policies.DefaultBranch {
 					res = append(res, RuleError{
 						Repo{org: repo.Owner, repo: repo.Name},
 						ERR_DEFAULT_BRANCH,
 					})
 
-					fmt.Printf("Error: The default branch should be %s, not %s.\n", rule.DefaultBranch, repoResp.GetDefaultBranch())
+					fmt.Printf("Error: The default branch should be %s, not %s.\n", policies.DefaultBranch, repoResp.GetDefaultBranch())
 				}
 
 				// if license is to be checked...
-				if rule.License != nil && rule.License.Scope == repoResp.GetVisibility() || rule.License.Scope == "all" {
-					if !slices.Contains(rule.License.Names, repoResp.GetLicense().GetKey()) {
+				if policies.License != nil && policies.License.Scope == repoResp.GetVisibility() || policies.License.Scope == "all" {
+					if !slices.Contains(policies.License.Names, repoResp.GetLicense().GetKey()) {
 						res = append(res, RuleError{
 							Repo{org: repo.Owner, repo: repo.Name},
 							ERR_LICENSE,
@@ -120,17 +120,17 @@ var (
 				}
 
 				// if label checks are to happen
-				if len(rule.Labels) > 0 {
+				if len(policies.Labels) > 0 {
 
 					labels, _, err := client.Issues.ListLabels(context.Background(), repo.Owner, repo.Name, nil)
 					if err != nil {
 						return err
 					}
 
-					if rule.LabelStrategy == "available" || rule.LabelStrategy == "" {
+					if policies.LabelStrategy == "available" || policies.LabelStrategy == "" {
 
 						// for each labal we're checking for
-						for _, label := range rule.Labels {
+						for _, label := range policies.Labels {
 
 							found := false
 
@@ -148,14 +148,14 @@ var (
 								})
 							}
 						}
-					} else if rule.LabelStrategy == "only" {
+					} else if policies.LabelStrategy == "only" {
 
 						// for each labal we're checking for
 						for _, iLabel := range labels {
 
 							found := false
 
-							for _, label := range rule.Labels {
+							for _, label := range policies.Labels {
 
 								if label == iLabel.GetName() {
 									found = true
@@ -170,23 +170,23 @@ var (
 							}
 						}
 					} else {
-						return errors.New("The labelStrategy of " + rule.LabelStrategy + " isn't valid.")
+						return errors.New("The labelStrategy of " + policies.LabelStrategy + " isn't valid.")
 					}
 
 				}
 
 				// if access permissions are to be checked...
-				if len(rule.Access) > 0 {
+				if len(policies.Access) > 0 {
 
 					teams, _, err := client.Repositories.ListTeams(context.Background(), repo.Owner, repo.Name, nil)
 					if err != nil {
 						return err
 					}
 
-					if rule.AccessStrategy == "available" || rule.AccessStrategy == "" {
+					if policies.AccessStrategy == "available" || policies.AccessStrategy == "" {
 
 						// for each team we're checking for
-						for _, user := range rule.Access {
+						for _, user := range policies.Access {
 
 							found := false
 							matched := false
@@ -216,7 +216,7 @@ var (
 							}
 						}
 					} else {
-						return errors.New("The accessStrategy of " + rule.AccessStrategy + " isn't valid.")
+						return errors.New("The accessStrategy of " + policies.AccessStrategy + " isn't valid.")
 					}
 				}
 			}
@@ -241,8 +241,8 @@ var (
 
 func init() {
 
+	AddPoliciesFileFlag(auditCmd)
 	AddRepositoriesFileFlag(auditCmd)
-	AddWardenFileFlag(auditCmd)
 
 	rootCmd.AddCommand(auditCmd)
 }
