@@ -97,10 +97,10 @@ Simply download the zip for architecture and extract the exe.
 ## Configuring
 
 **credentials** - the credentials file is `~/.config/warden/creds.yaml`.
-The key `githubtoken` should be set to a token that has enough permissions to do what you need.
+The key `githubToken` should be set to a token that has enough permissions to do what you need.
 
-**policies** - the policy file, `warden.yml`, should be in the current directory.
-You can get started by copying over the example one: `cp example.warden.yml warden.yml`
+**policies** - the policy file, `policy.yml`, should be in the current directory.
+You can get started by copying over the example one: `cp example.policy.yml policy.yml`
 
 
 ## Features
