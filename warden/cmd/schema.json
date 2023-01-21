@@ -72,8 +72,5 @@
 			"type": "string",
 			"default": "available"
 		}
-	},
-	"required": [
-		"repositories"
-	]
+	}
 }
