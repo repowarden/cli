@@ -12,3 +12,17 @@ labels:
 # only - the repo should only have the labels listed. Any additional labels are not okay.
 #labelStrategy: "only"
 labelStrategy: "available"
+# Access permissions allowed. The first example is a regular user and the
+# second one is a team example.
+access:
+  - user: felicianotech
+    permission: admin
+  - user: cloud-unpacked/tech-writers
+    permission: push
+# The access strategy determines the relationship between the permissions listed
+# here and how we audit
+# available - the repo needs to have the permissions listed. Any additional
+# permissions are fine.
+# only - the repo should only have the permissions listed. Any additional
+# permissions are not okay.
+accessStrategy: "available"
