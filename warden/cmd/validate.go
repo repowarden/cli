@@ -20,7 +20,7 @@ var (
 		Short: "Validates a Warden file to match the schema",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			_, policiesFile, err := loadPoliciesFile(policiesFileFl)
+			_, policyFile, err := loadPolicyFile(policyFileFl)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -32,7 +32,7 @@ var (
 
 			var m interface{}
 
-			err = yaml.Unmarshal(policiesFile, &m)
+			err = yaml.Unmarshal(policyFile, &m)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -60,7 +60,7 @@ var (
 
 func init() {
 
-	AddPoliciesFileFlag(validateCmd)
+	AddPolicyFileFlag(validateCmd)
 
 	rootCmd.AddCommand(validateCmd)
 }

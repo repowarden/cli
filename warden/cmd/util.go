@@ -9,17 +9,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// loadPoliciesFile tries to intelligently choose a filepath for the
-// policiesfile and then return the unmarshalled struct. If customPath is not
+// loadPolicyFile tries to intelligently choose a filepath for the
+// policy file and then return the unmarshalled struct. If customPath is not
 // empty, it will try to use that before the default filenames.
-func loadPoliciesFile(customPath string) (*PoliciesFile, []byte, error) {
+func loadPolicyFile(customPath string) (*PolicyFile, []byte, error) {
 
-	var file PoliciesFile
+	var file PolicyFile
 	var foundFile bool
 	var yamlContent []byte
 	var err error
 
-	possibleFilepaths := []string{"policies."}
+	possibleFilepaths := []string{"policy."}
 
 	if customPath != "" {
 		possibleFilepaths = append([]string{customPath}, possibleFilepaths...)
@@ -40,7 +40,7 @@ func loadPoliciesFile(customPath string) (*PoliciesFile, []byte, error) {
 	}
 
 	if !foundFile {
-		return nil, nil, fmt.Errorf("A policies file was not found. Either './policies.yml' needs to be used or the '--policiesFile' flag set.")
+		return nil, nil, fmt.Errorf("A policy file was not found. Either './policy.yml' needs to be used or the '--policyFile' flag set.")
 	}
 
 	return &file, yamlContent, nil

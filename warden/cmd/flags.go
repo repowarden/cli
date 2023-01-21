@@ -2,12 +2,12 @@ package cmd
 
 import "github.com/spf13/cobra"
 
-var policiesFileFl string
+var policyFileFl string
 var repositoriesFileFl string
 
-func AddPoliciesFileFlag(cmd *cobra.Command) {
+func AddPolicyFileFlag(cmd *cobra.Command) {
 
-	cmd.PersistentFlags().StringVar(&policiesFileFl, "policiesFile", "", "file containing rules (default is ./policies.y[a]ml)")
+	cmd.PersistentFlags().StringVar(&policyFileFl, "policyFile", "", "file containing rules (default is ./policy.y[a]ml)")
 }
 
 func AddRepositoriesFileFlag(cmd *cobra.Command) {
