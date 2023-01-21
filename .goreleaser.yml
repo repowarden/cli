@@ -40,7 +40,7 @@ nfpms:
 
 brews:
   - tap:
-      owner: felicianotech
+      owner: repowarden
       name: homebrew-tap
     commit_author:
       name: "Ricardo N Feliciano (FelicianoTech)"
