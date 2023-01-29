@@ -11,21 +11,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//go:embed policy.schema.json
-var policySchemaFile []byte
+//go:embed repos.schema.json
+var reposSchemaFile []byte
 
 var (
-	validateCmd = &cobra.Command{
+	reposValidateCmd = &cobra.Command{
 		Use:   "validate",
-		Short: "Validates a Warden file to match the schema",
+		Short: "Validates a repositories file to match the schema",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			_, policyFile, err := loadPolicyFile(policyFileFl)
+			_, policyFile, err := loadRepositoriesFile(repositoriesFileFl)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			schemaReader := bytes.NewReader(policySchemaFile)
+			schemaReader := bytes.NewReader(reposSchemaFile)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -38,11 +38,11 @@ var (
 			}
 
 			compiler := jsonschema.NewCompiler()
-			if err := compiler.AddResource("policy.schema.json", schemaReader); err != nil {
+			if err := compiler.AddResource("repos.schema.json", schemaReader); err != nil {
 				log.Fatal(err)
 			}
 
-			schema, err := compiler.Compile("policy.schema.json")
+			schema, err := compiler.Compile("repos.schema.json")
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -60,7 +60,7 @@ var (
 
 func init() {
 
-	AddPolicyFileFlag(validateCmd)
+	AddRepositoriesFileFlag(reposValidateCmd)
 
-	rootCmd.AddCommand(validateCmd)
+	reposCmd.AddCommand(reposValidateCmd)
 }
