@@ -15,9 +15,9 @@ import (
 var policySchemaFile []byte
 
 var (
-	validateCmd = &cobra.Command{
+	policyValidateCmd = &cobra.Command{
 		Use:   "validate",
-		Short: "Validates a Warden file to match the schema",
+		Short: "Validates a policy file to match the schema",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			_, policyFile, err := loadPolicyFile(policyFileFl)
@@ -60,7 +60,6 @@ var (
 
 func init() {
 
-	AddPolicyFileFlag(validateCmd)
-
-	rootCmd.AddCommand(validateCmd)
+	AddPolicyFileFlag(policyValidateCmd)
+	policyCmd.AddCommand(policyValidateCmd)
 }
