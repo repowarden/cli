@@ -35,10 +35,7 @@
 				}
 			},
 			"children": {
-				"type": "array",
-				"items": {
-					"$ref": "#"
-				}
+				"$ref": "#"
 			}
 		}
 	}
