@@ -1,0 +1,45 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://repowarden.com/repos.schema.json",
+	"title": "Repositories File",
+	"description": "Schema for the repositories.yml file that describes a list of VCS repository URLs.",
+	"type": "array",
+	"items": {
+		"type": "object",
+		"properties": {
+			"group": {
+				"description": "A natural category to place repositories in. Groups are hierarchical and should be slugs.",
+				"type": "string"
+			},
+			"repositories": {
+				"description": "A VCS repository with optional tags.",
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"url": {
+							"description": "A valid repository URL.",
+							"type": "string"
+						},
+						"tags": {
+							"description": "A tag helps with filtering repositories. An array of strings.",
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						}
+					},
+					"required":	[
+						"url"
+					]
+				}
+			},
+			"children": {
+				"type": "array",
+				"items": {
+					"$ref": "#"
+				}
+			}
+		}
+	}
+}

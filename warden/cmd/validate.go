@@ -11,7 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//go:embed schema.json
+//go:embed policy.schema.json
 var schemaFile []byte
 
 var (

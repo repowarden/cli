@@ -1,6 +1,18 @@
-# any valid GitHub URL
-- url: "http://github.com/felicianotech/sonar"
-- url: "https://github.com/felicianotech/para"
-- url: "http://github.com/felicianotech/www.feliciano.tech"
-  group: "hugo"
-- url: "https://github.com/strawberryssg/strawberry-v0"
+- group: personal
+  repositories:
+    - url: "http://github.com/felicianotech/www.feliciano.tech"
+      tags:
+        - hugo
+- group: active
+  repositories:
+    - url: "http://github.com/felicianotech/sonar"
+    - url: "http://github.com/hubci/arc"
+- group: other
+  repositories:
+    - url: "https://github.com/felicianotech/para"
+  children:
+    - group: strawberry
+      repositories:
+        - url: "https://github.com/strawberryssg/strawberry-v0"
+        - url: "https://github.com/hubci/strawberry-docker"
+        - url: "https://github.com/hubci/strawberry-orb"
