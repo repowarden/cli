@@ -35,9 +35,9 @@ func loadPolicyFile(customPath string) (*PolicyFile, []byte, error) {
 // loadRepositoriesFile tries to intelligently choose a filepath for the
 // Wardenfile and then return the unmarshalled struct. If customPath is not
 // empty, it will try to use that before the default filenames.
-func loadRepositoriesFile(customPath string) (RepositoriesFile, []byte, error) {
+func loadRepositoriesFile(customPath string) (*RepositoriesFile, []byte, error) {
 
-	var repositoriesFile []RepositoryGroup
+	var repositoriesFile RepositoriesFile
 	var yamlContent []byte
 	var err error
 
@@ -51,7 +51,7 @@ func loadRepositoriesFile(customPath string) (RepositoriesFile, []byte, error) {
 		return nil, nil, fmt.Errorf("The repositories file couldn't be parsed. Something is wrong.")
 	}
 
-	return repositoriesFile, yamlContent, nil
+	return &repositoriesFile, yamlContent, nil
 }
 
 // loadYAMLFile attempts to load a YAML file based on one or more possible file
@@ -101,4 +101,60 @@ func loadYAMLFile(filepaths ...string) ([]byte, error) {
 	}
 
 	return yamlContent, nil
+}
+
+// saveYAMLFile attempts to save YAML to a file based on one or more possible
+// file names. Both .yml and .yaml will be attempted and in that order. If
+// 'create' is true, the filename has not not exist to be saved. Returns the
+// filepath used.
+func saveYAMLFile(content []byte, create bool, filepaths ...string) (string, error) {
+
+	var possiblePaths []string
+	var err error
+
+	if len(filepaths) == 0 {
+		return "", fmt.Errorf("At least one filepath needs to be provided.")
+	}
+
+	for _, path := range filepaths {
+
+		if strings.HasSuffix(path, ".yml") {
+			path = path[0 : len(path)-3]
+		} else if strings.HasSuffix(path, ".yaml") {
+			path = path[0 : len(path)-4]
+		} else if path == "" {
+			continue
+		} else {
+			return "", fmt.Errorf("Only YAML files are supported.")
+		}
+
+		possiblePaths = append(possiblePaths, path+"yml")
+		possiblePaths = append(possiblePaths, path+"yaml")
+	}
+
+	choosenFilepath := ""
+
+	for _, path := range filepaths {
+
+		_, err = os.Stat(path)
+		if errors.Is(err, fs.ErrNotExist) && create {
+			choosenFilepath = path
+			break
+		} else if !errors.Is(err, fs.ErrNotExist) && !create {
+			choosenFilepath = path
+			break
+		}
+	}
+
+	if choosenFilepath == "" {
+		return "", errors.New("No suitable file to write to.")
+	}
+
+	err = os.WriteFile(choosenFilepath, content, 0664)
+	if err != nil {
+		return "", err
+	}
+
+	return choosenFilepath, nil
+
 }
