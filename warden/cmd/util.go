@@ -35,9 +35,9 @@ func loadPolicyFile(customPath string) (*PolicyFile, []byte, error) {
 // loadRepositoriesFile tries to intelligently choose a filepath for the
 // Wardenfile and then return the unmarshalled struct. If customPath is not
 // empty, it will try to use that before the default filenames.
-func loadRepositoriesFile(customPath string) ([]RepositoryDefinition, []byte, error) {
+func loadRepositoriesFile(customPath string) (RepositoriesFile, []byte, error) {
 
-	var repositoriesFile []RepositoryDefinition
+	var repositoriesFile []RepositoryGroup
 	var yamlContent []byte
 	var err error
 

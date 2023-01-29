@@ -49,11 +49,6 @@ type PolicyFile struct {
 	AccessStrategy string           `yaml:"accessStrategy"`
 }
 
-type RepositoryDefinition struct {
-	URL   string `json:"url"`
-	Group string `json:"group"`
-}
-
 type RuleError struct {
 	repo  Repo
 	error string
@@ -71,7 +66,7 @@ var (
 
 			var res []RuleError
 
-			repoDefs, _, err := loadRepositoriesFile(repositoriesFileFl)
+			repoFile, _, err := loadRepositoriesFile(repositoriesFileFl)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -87,7 +82,7 @@ var (
 			tc := oauth2.NewClient(context.Background(), ts)
 			client := github.NewClient(tc)
 
-			for _, repoDef := range repoDefs {
+			for _, repoDef := range repoFile.RepositoriesByGroup("all") {
 
 				repo, err := vcsurl.Parse(repoDef.URL)
 				if err != nil {
