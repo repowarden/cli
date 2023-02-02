@@ -78,7 +78,7 @@ var (
 
 			ghToken := viper.GetString("githubToken")
 			if ghToken == "" {
-				return errors.New("GitHub credentials were not found.")
+				return errors.New("GitHub credentials were not found. Please run `warden configure`.")
 			}
 
 			ts := oauth2.StaticTokenSource(
