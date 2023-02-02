@@ -38,6 +38,7 @@ type PolicyFile struct {
 	LabelStrategy  string           `yaml:"labelStrategy"`
 	Access         []UserPermission `yaml:"access"`
 	AccessStrategy string           `yaml:"accessStrategy"`
+	CodeOwners     string           `yaml:"codeowners"`
 }
 
 var (
@@ -80,6 +81,47 @@ var (
 
 				if repoResp.GetArchived() != policy.Archived {
 					continue
+				}
+
+				// if the CODEOWNERS file is to be checked...
+				if policy.CodeOwners != "" {
+
+					file, _, _, err := client.Repositories.GetContents(context.Background(), repo.Owner, repo.Name, ".github/CODEOWNERS", nil)
+					if err != nil {
+
+						switch err.(type) {
+						case *github.ErrorResponse:
+							if err.(*github.ErrorResponse).Response != nil && err.(*github.ErrorResponse).Response.StatusCode == 404 {
+								policyErrors = append(policyErrors, PolicyError{
+									repoDef,
+									ERR_CO_MISSING,
+									nil,
+								})
+
+								continue
+							} else {
+								return err
+							}
+						default:
+							return err
+						}
+					}
+
+					content, err := file.GetContent()
+					if err != nil {
+						return err
+					}
+					// handle manual tabs
+					content = fmt.Sprintf(policy.CodeOwners)
+
+					// check if the files match
+					if policy.CodeOwners != content {
+						policyErrors = append(policyErrors, PolicyError{
+							repoDef,
+							ERR_CO_DIFFERENT,
+							nil,
+						})
+					}
 				}
 
 				if repoResp.GetDefaultBranch() != policy.DefaultBranch {
@@ -205,6 +247,7 @@ var (
 						return errors.New("The accessStrategy of " + policy.AccessStrategy + " isn't valid.")
 					}
 				}
+
 			}
 
 			if len(policyErrors) > 0 {

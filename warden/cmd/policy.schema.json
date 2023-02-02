@@ -64,6 +64,9 @@
 			"description": "The theory behind how to audit access. 'available' - the repo needs to have the access listed. Any additional permissions are fine. 'only' - the repo should only have the access listed. Additional permissions are not okay.",
 			"type": "string",
 			"default": "available"
+		},
+		"codeowners": {
+			"description": "The actual text to match for a CODEOWNERS file."
 		}
 	}
 }
