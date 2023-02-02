@@ -3,10 +3,10 @@ module github.com/repowarden/cli
 go 1.19
 
 require (
-	github.com/google/go-github/v49 v49.1.0
+	github.com/AlecAivazis/survey/v2 v2.3.6
+	github.com/google/go-github/v50 v50.0.0
 	github.com/magefile/mage v1.14.0
 	github.com/santhosh-tekuri/jsonschema/v5 v5.1.1
-	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
 	golang.org/x/exp v0.0.0-20230111222715-75897c7a292a
@@ -15,7 +15,6 @@ require (
 )
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.6 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
