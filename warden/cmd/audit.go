@@ -15,15 +15,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
-	ERR_DEFAULT_BRANCH = "The repository %s has an incorrect default branch."
-	ERR_LICENSE        = "The repository %s has an incorrect license."
-	ERR_LABEL_MISSING  = "The repository %s is missing the label %s."
-	ERR_LABEL_EXTRA    = "The repository %s has an extra label."
-	ERR_ACCESS_MISSING = "The repository %s doesn't have the user."
-	ERR_ACCESS_WRONG   = "The repository %s's user's permission is incorrect."
-)
-
 type Repo struct {
 	org  string
 	repo string
@@ -49,22 +40,13 @@ type PolicyFile struct {
 	AccessStrategy string           `yaml:"accessStrategy"`
 }
 
-type RuleError struct {
-	repo  Repo
-	error string
-}
-
-func (re *RuleError) Error() string {
-	return fmt.Sprintf(re.error, re.repo.org+"/"+re.repo.repo)
-}
-
 var (
 	auditCmd = &cobra.Command{
 		Use:   "audit",
 		Short: "Validates that 1 or more repos meet a set of policy",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			var res []RuleError
+			var policyErrors []PolicyError
 
 			repoFile, _, err := loadRepositoriesFile(repositoriesFileFl)
 			if err != nil {
@@ -101,20 +83,20 @@ var (
 				}
 
 				if repoResp.GetDefaultBranch() != policy.DefaultBranch {
-					res = append(res, RuleError{
-						Repo{org: repo.Owner, repo: repo.Name},
-						ERR_DEFAULT_BRANCH,
+					policyErrors = append(policyErrors, PolicyError{
+						repoDef,
+						ERR_BRANCH_DEFAULT,
+						[]any{policy.DefaultBranch, repoResp.GetDefaultBranch()},
 					})
-
-					fmt.Printf("Error: The default branch should be %s, not %s.\n", policy.DefaultBranch, repoResp.GetDefaultBranch())
 				}
 
 				// if license is to be checked...
 				if policy.License != nil && policy.License.Scope == repoResp.GetVisibility() || policy.License.Scope == "all" {
 					if !slices.Contains(policy.License.Names, repoResp.GetLicense().GetKey()) {
-						res = append(res, RuleError{
-							Repo{org: repo.Owner, repo: repo.Name},
+						policyErrors = append(policyErrors, PolicyError{
+							repoDef,
 							ERR_LICENSE,
+							[]any{policy.License.Names, repoResp.GetLicense().GetKey()},
 						})
 					}
 				}
@@ -142,9 +124,10 @@ var (
 							}
 
 							if !found {
-								res = append(res, RuleError{
-									Repo{org: repo.Owner, repo: repo.Name + " label:" + label},
+								policyErrors = append(policyErrors, PolicyError{
+									repoDef,
 									ERR_LABEL_MISSING,
+									[]any{label},
 								})
 							}
 						}
@@ -153,19 +136,20 @@ var (
 						// for each labal we're checking for
 						for _, iLabel := range labels {
 
-							found := false
+							found := ""
 
 							for _, label := range policy.Labels {
 
 								if label == iLabel.GetName() {
-									found = true
+									found = label
 								}
 							}
 
-							if !found {
-								res = append(res, RuleError{
-									Repo{org: repo.Owner, repo: repo.Name + " label:" + iLabel.GetName()},
+							if found != "" {
+								policyErrors = append(policyErrors, PolicyError{
+									repoDef,
 									ERR_LABEL_EXTRA,
+									[]any{found},
 								})
 							}
 						}
@@ -188,30 +172,32 @@ var (
 						// for each team we're checking for
 						for _, user := range policy.Access {
 
-							found := false
-							matched := false
+							found := ""
+							matched := ""
 
 							for _, team := range teams {
 
 								if user.Username == team.GetName() {
 
-									found = true
+									found = user.Username
 
 									if user.Permission == team.GetPermission() {
-										matched = true
+										matched = user.Permission
 									}
 								}
 							}
 
-							if !found {
-								res = append(res, RuleError{
-									Repo{org: repo.Owner, repo: repo.Name + " user:" + user.Username},
+							if found != "" {
+								policyErrors = append(policyErrors, PolicyError{
+									repoDef,
 									ERR_ACCESS_MISSING,
+									[]any{found},
 								})
-							} else if !matched {
-								res = append(res, RuleError{
-									Repo{org: repo.Owner, repo: repo.Name + " user:" + user.Permission},
+							} else if matched != "" {
+								policyErrors = append(policyErrors, PolicyError{
+									repoDef,
 									ERR_ACCESS_WRONG,
+									[]any{matched},
 								})
 							}
 						}
@@ -221,12 +207,21 @@ var (
 				}
 			}
 
-			if len(res) > 0 {
+			if len(policyErrors) > 0 {
 
-				fmt.Println("The audit failed. Here are the errors:")
+				fmt.Printf("The audit failed. Here are the errors:\n\n")
 
-				for _, err := range res {
-					fmt.Printf("- %s\n", err.Error())
+				var curRepo string
+
+				for _, err := range policyErrors {
+
+					if curRepo != err.repository.URL {
+
+						curRepo = err.repository.URL
+						fmt.Printf("%s:\n", curRepo)
+					}
+
+					fmt.Printf("  - %s\n", err.Error())
 				}
 
 				return nil
