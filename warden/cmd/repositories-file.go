@@ -31,6 +31,24 @@ func (this *RepositoryGroup) HasChildren() bool {
 	return len(this.Children) > 0
 }
 
+// Returns the list of URLs for each repository in this group. The parameter decides if to include children or not.
+func (this *RepositoryGroup) ListRepositories(listChildren bool) []string {
+
+	var repos []string
+
+	for _, repo := range this.Repositories {
+		repos = append(repos, repo.URL)
+	}
+
+	if listChildren {
+		for _, group := range this.Children {
+			repos = append(repos, group.ListRepositories(true)...)
+		}
+	}
+
+	return repos
+}
+
 //=============================================================================
 // A repositories.yml file
 //=============================================================================

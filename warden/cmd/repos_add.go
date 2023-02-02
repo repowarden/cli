@@ -1,15 +1,12 @@
 package cmd
 
 import (
-	_ "embed"
 	"fmt"
 	"log"
 
 	"github.com/repowarden/cli/warden/vcsurl"
 	"github.com/spf13/cobra"
 )
-
-var groupFl string
 
 var (
 	reposAddCmd = &cobra.Command{
