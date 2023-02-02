@@ -26,3 +26,10 @@ access:
 # only - the repo should only have the permissions listed. Any additional
 # permissions are not okay.
 accessStrategy: "available"
+
+# For CODEOWNERS checks, use a pipe multistring to specify what the code owners file should be.
+# Warden will also repo if there is any syntax errors with the file
+# only .github/CODEOWNERS is supported right now
+# Since inputting tabs into YAML can be weird, use \t instead
+codeowners: |
+  *\t@CircleCI-Public/orb-publishers @CircleCI-Public/images
