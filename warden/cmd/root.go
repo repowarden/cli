@@ -5,16 +5,15 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var cfgFile string
 var versionFl bool
 
 var rootCmd = &cobra.Command{
-	Use:   "warden",
-	Short: "Audit your git repositories based on policy",
+	Use:          "warden",
+	Short:        "Audit your git repositories based on policy",
+	SilenceUsage: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		if versionFl {
 			versionCmd.Run(cmd, []string{"--short"})
@@ -27,7 +26,6 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Error(err)
 		os.Exit(1)
 	}
 }

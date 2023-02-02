@@ -76,6 +76,11 @@ var (
 				log.Fatal(err)
 			}
 
+			ghToken := viper.GetString("githubToken")
+			if ghToken == "" {
+				return errors.New("GitHub credentials were not found.")
+			}
+
 			ts := oauth2.StaticTokenSource(
 				&oauth2.Token{AccessToken: viper.GetString("githubToken")},
 			)
