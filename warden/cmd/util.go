@@ -51,7 +51,15 @@ func loadRepositoriesFile(customPath string) (*RepositoriesFile, []byte, error) 
 		return nil, nil, fmt.Errorf("The repositories file couldn't be parsed. Something is wrong.")
 	}
 
-	return &repositoriesFile, yamlContent, nil
+	// create all group
+	compiledFile := RepositoriesFile{
+		&RepositoryGroup{
+			Group:    "all",
+			Children: repositoriesFile,
+		},
+	}
+
+	return &compiledFile, yamlContent, nil
 }
 
 // loadYAMLFile attempts to load a YAML file based on one or more possible file

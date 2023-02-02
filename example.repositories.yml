@@ -1,3 +1,8 @@
+# Groups are hierarchical.
+# A group name should not be used more than one.
+# The group name 'all' is a 'compiled' group and thus not allowed.
+#
+# Tags are not hierarchical.
 - group: personal
   repositories:
     - url: http://github.com/felicianotech/www.feliciano.tech
