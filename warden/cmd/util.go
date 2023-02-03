@@ -43,7 +43,7 @@ func loadRepositoriesFile(customPath string) (*RepositoriesFile, []byte, error) 
 
 	yamlContent, err = loadYAMLFile("repositories.yml", customPath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("A Repositories file was not found. Either './repositories.yml' needs to be used or the '--repositoriesFile' flag set.")
+		return nil, nil, fmt.Errorf("./repositories.yml' was not found. The file either doesn't exist, you're in the wrong directory, or the '--repositoriesFile' flag needs to be set.")
 	}
 
 	err = yaml.Unmarshal(yamlContent, &repositoriesFile)

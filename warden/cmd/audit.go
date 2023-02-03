@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -53,12 +52,12 @@ var (
 
 			repoFile, _, err := loadRepositoriesFile(repositoriesFileFl)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			policy, _, err := loadPolicyFile(policyFileFl)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			ghToken := viper.GetString("githubToken")
