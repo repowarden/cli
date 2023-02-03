@@ -100,10 +100,16 @@ var (
 
 				// if license is to be checked...
 				if policy.License != nil && policy.License.Scope == repoResp.GetVisibility() || policy.License.Scope == "all" {
-					if !slices.Contains(policy.License.Names, repoResp.GetLicense().GetKey()) {
+					if repoResp.GetLicense().GetKey() == "" {
 						policyErrors = append(policyErrors, PolicyError{
 							repoDef,
-							ERR_LICENSE,
+							ERR_LICENSE_MISSING,
+							nil,
+						})
+					} else if !slices.Contains(policy.License.Names, repoResp.GetLicense().GetKey()) {
+						policyErrors = append(policyErrors, PolicyError{
+							repoDef,
+							ERR_LICENSE_DIFFERENT,
 							[]any{policy.License.Names, repoResp.GetLicense().GetKey()},
 						})
 					}
