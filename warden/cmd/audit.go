@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"golang.org/x/exp/slices"
@@ -271,7 +272,7 @@ var (
 
 			if len(policyErrors) > 0 {
 
-				fmt.Printf("The audit failed. Here are the errors:\n\n")
+				fmt.Fprintf(os.Stderr, "The audit failed.\n\n")
 
 				var curRepo string
 
@@ -280,13 +281,13 @@ var (
 					if curRepo != err.repository.URL {
 
 						curRepo = err.repository.URL
-						fmt.Printf("%s:\n", curRepo)
+						fmt.Fprintf(os.Stderr, "%s:\n", curRepo)
 					}
 
-					fmt.Printf("  - %s\n", err.Error())
+					fmt.Fprintf(os.Stderr, "  - %s\n", err.Error())
 				}
 
-				return nil
+				return fmt.Errorf("\nThe audit failed. Above are the policy failures, by repository.\n")
 			}
 
 			fmt.Println("The audit completed successfully.")
