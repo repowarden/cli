@@ -31,7 +31,8 @@ func (this *RepositoryGroup) HasChildren() bool {
 	return len(this.Children) > 0
 }
 
-// Returns the list of URLs for each repository in this group. The parameter decides if to include children or not.
+// Returns the list of URLs for each repository in this group. The parameter
+// decides if to include children or not.
 func (this *RepositoryGroup) ListRepositories(listChildren bool) []string {
 
 	var repos []string
@@ -43,6 +44,21 @@ func (this *RepositoryGroup) ListRepositories(listChildren bool) []string {
 	if listChildren {
 		for _, group := range this.Children {
 			repos = append(repos, group.ListRepositories(true)...)
+		}
+	}
+
+	return repos
+}
+
+// Returns the repositories belong to the group. The parameter decides if to
+// include children or not.
+func (this *RepositoryGroup) GetRepositories(listChildren bool) []RepositoryDefinition {
+
+	repos := this.Repositories
+
+	if listChildren {
+		for _, group := range this.Children {
+			repos = append(repos, group.GetRepositories(true)...)
 		}
 	}
 
