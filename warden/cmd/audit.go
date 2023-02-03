@@ -254,12 +254,13 @@ var (
 						})
 					}
 
+					// check for codeowners syntax errors
 					coErrs, _, err := client.Repositories.GetCodeownersErrors(context.Background(), repo.Owner, repo.Name)
 					if err != nil {
 						return err
 					}
 
-					if coErrs != nil {
+					if len(coErrs.Errors) > 0 {
 
 						var suggestions []string
 						for _, coErr := range coErrs.Errors {
@@ -292,7 +293,9 @@ var (
 					fmt.Fprintf(os.Stderr, "  - %s\n", err.Error())
 				}
 
-				return fmt.Errorf("\nThe audit failed. Above are the policy failures, by repository.\n")
+				fmt.Println("") // intentional
+
+				return fmt.Errorf("The audit failed. Above are the policy failures, by repository.\n")
 			}
 
 			fmt.Println("The audit completed successfully.")
