@@ -70,7 +70,7 @@ var (
 			tc := oauth2.NewClient(context.Background(), ts)
 			client := github.NewClient(tc)
 
-			for _, repoDef := range repoFile.RepositoriesByGroup("all") {
+			for _, repoDef := range repoFile.RepositoriesByGroup(groupFl) {
 
 				repo, err := vcsurl.Parse(repoDef.URL)
 				if err != nil {
@@ -279,6 +279,7 @@ var (
 
 func init() {
 
+	AddGroupFlag(auditCmd)
 	AddPolicyFileFlag(auditCmd)
 	AddRepositoriesFileFlag(auditCmd)
 
