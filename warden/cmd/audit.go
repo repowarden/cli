@@ -84,66 +84,6 @@ var (
 					continue
 				}
 
-				// if the CODEOWNERS file is to be checked...
-				if policy.CodeOwners != "" {
-
-					file, _, _, err := client.Repositories.GetContents(context.Background(), repo.Owner, repo.Name, ".github/CODEOWNERS", nil)
-					if err != nil {
-
-						switch err.(type) {
-						case *github.ErrorResponse:
-							if err.(*github.ErrorResponse).Response != nil && err.(*github.ErrorResponse).Response.StatusCode == 404 {
-								policyErrors = append(policyErrors, PolicyError{
-									repoDef,
-									ERR_CO_MISSING,
-									nil,
-								})
-
-								continue
-							} else {
-								return err
-							}
-						default:
-							return err
-						}
-					}
-
-					content, err := file.GetContent()
-					if err != nil {
-						return err
-					}
-					// handle manual tabs
-					content = fmt.Sprintf(policy.CodeOwners)
-
-					// check if the files match
-					if policy.CodeOwners != content {
-						policyErrors = append(policyErrors, PolicyError{
-							repoDef,
-							ERR_CO_DIFFERENT,
-							nil,
-						})
-					}
-
-					coErrs, _, err := client.Repositories.GetCodeownersErrors(context.Background(), repo.Owner, repo.Name)
-					if err != nil {
-						return err
-					}
-
-					if coErrs != nil {
-
-						var suggestions []string
-						for _, coErr := range coErrs.Errors {
-							suggestions = append(suggestions, "    > "+coErr.GetSuggestion())
-						}
-
-						policyErrors = append(policyErrors, PolicyError{
-							repoDef,
-							ERR_CO_SYNTAX,
-							[]any{strings.Join(suggestions, "\n")},
-						})
-					}
-				}
-
 				if repoResp.GetDefaultBranch() != policy.DefaultBranch {
 					policyErrors = append(policyErrors, PolicyError{
 						repoDef,
@@ -268,6 +208,65 @@ var (
 					}
 				}
 
+				// if the CODEOWNERS file is to be checked...
+				if policy.CodeOwners != "" {
+
+					file, _, _, err := client.Repositories.GetContents(context.Background(), repo.Owner, repo.Name, ".github/CODEOWNERS", nil)
+					if err != nil {
+
+						switch err.(type) {
+						case *github.ErrorResponse:
+							if err.(*github.ErrorResponse).Response != nil && err.(*github.ErrorResponse).Response.StatusCode == 404 {
+								policyErrors = append(policyErrors, PolicyError{
+									repoDef,
+									ERR_CO_MISSING,
+									nil,
+								})
+
+								continue
+							} else {
+								return err
+							}
+						default:
+							return err
+						}
+					}
+
+					content, err := file.GetContent()
+					if err != nil {
+						return err
+					}
+					// handle manual tabs
+					content = fmt.Sprintf(policy.CodeOwners)
+
+					// check if the files match
+					if policy.CodeOwners != content {
+						policyErrors = append(policyErrors, PolicyError{
+							repoDef,
+							ERR_CO_DIFFERENT,
+							nil,
+						})
+					}
+
+					coErrs, _, err := client.Repositories.GetCodeownersErrors(context.Background(), repo.Owner, repo.Name)
+					if err != nil {
+						return err
+					}
+
+					if coErrs != nil {
+
+						var suggestions []string
+						for _, coErr := range coErrs.Errors {
+							suggestions = append(suggestions, "    > "+coErr.GetSuggestion())
+						}
+
+						policyErrors = append(policyErrors, PolicyError{
+							repoDef,
+							ERR_CO_SYNTAX,
+							[]any{strings.Join(suggestions, "\n")},
+						})
+					}
+				}
 			}
 
 			if len(policyErrors) > 0 {
