@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"golang.org/x/exp/slices"
 	"golang.org/x/oauth2"
@@ -120,6 +121,25 @@ var (
 							repoDef,
 							ERR_CO_DIFFERENT,
 							nil,
+						})
+					}
+
+					coErrs, _, err := client.Repositories.GetCodeownersErrors(context.Background(), repo.Owner, repo.Name)
+					if err != nil {
+						return err
+					}
+
+					if coErrs != nil {
+
+						var suggestions []string
+						for _, coErr := range coErrs.Errors {
+							suggestions = append(suggestions, "    > "+coErr.GetSuggestion())
+						}
+
+						policyErrors = append(policyErrors, PolicyError{
+							repoDef,
+							ERR_CO_SYNTAX,
+							[]any{strings.Join(suggestions, "\n")},
 						})
 					}
 				}
