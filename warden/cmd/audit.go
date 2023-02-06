@@ -248,10 +248,10 @@ var (
 						return err
 					}
 					// handle manual tabs
-					content = fmt.Sprintf(policy.CodeOwners)
+					policyContent := fmt.Sprintf(policy.CodeOwners)
 
 					// check if the files match
-					if policy.CodeOwners != content {
+					if policyContent != content {
 						policyErrors = append(policyErrors, PolicyError{
 							repoDef,
 							ERR_CO_DIFFERENT,
