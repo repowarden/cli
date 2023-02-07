@@ -19,7 +19,7 @@ var (
 			// ensure the repository URL is valid
 			_, err := vcsurl.Parse(repository)
 			if err != nil {
-				return fmt.Errorf("The repository URL %s isn't valid.", repository)
+				return fmt.Errorf("The repository URL %s is invalid: %s", repository, err)
 			}
 
 			repositoriesFile, _, err := loadRepositoriesFile(repositoriesFileFl)
