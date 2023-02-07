@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -29,9 +31,18 @@ var (
 				return err
 			}
 
+			// makes sure the path to the config file exists
+			err = os.MkdirAll(os.ExpandEnv("$HOME/.config/warden"), os.ModePerm)
+			if err != nil {
+				return err
+			}
+
 			viper.Set("githubtoken", answers.GitHubToken)
 
-			viper.WriteConfig()
+			err = viper.WriteConfig()
+			if err != nil {
+				return err
+			}
 
 			return nil
 		},
