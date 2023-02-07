@@ -2,8 +2,15 @@ package vcsurl
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
+
+var hosts = []string{
+	"github.com",
+}
 
 var protocols = [...]string{
 	"git",
@@ -28,36 +35,31 @@ func (this *Repository) ToSSH() string {
 
 func Parse(input string) (*Repository, error) {
 
-	var repo Repository
-
 	if strings.HasSuffix(input, ".git") {
 		input = input[:len(input)-4]
 	}
 
 	if strings.HasPrefix(input, "git@") {
-
-		input = input[4:]
-		repo.Host = strings.Split(input, ":")[0]
-		input = input[len(repo.Host)+1:]
+		input = strings.Replace(input, ":", "/", 1)
+		input = strings.Replace(input, "git@", "https://", 1)
 	}
 
-	if strings.HasPrefix(input, "https://") {
-
-		input = input[8:]
-		repo.Host = strings.Split(input, "/")[0]
-		input = input[len(repo.Host)+1:]
-	} else if strings.HasPrefix(input, "http://") {
-
-		input = input[7:]
-		repo.Host = strings.Split(input, "/")[0]
-		input = input[len(repo.Host)+1:]
+	repoURL, err := url.Parse(input)
+	if err != nil {
+		return nil, err
 	}
 
-	repoParts := strings.Split(input, "/")
-	repo.Owner = repoParts[0]
-	repo.Name = repoParts[1]
+	if !slices.Contains(hosts, repoURL.Host) {
+		return nil, fmt.Errorf("%s is not a valid hostname.", repoURL.Host)
+	}
 
-	return &repo, nil
+	repoParts := strings.Split(repoURL.Path, "/")
+
+	return &Repository{
+		Host:  repoURL.Host,
+		Owner: repoParts[1],
+		Name:  repoParts[2],
+	}, nil
 }
 
 func Validate(url string) bool {
