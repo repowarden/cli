@@ -276,7 +276,6 @@ var (
 
 							for team, _ := range onlyMatches {
 
-								fmt.Printf("The team is: %s\n", team) //DEBUG
 								if onlyMatches[team] == false {
 									policyErrors = append(policyErrors, PolicyError{
 										repoDef,
