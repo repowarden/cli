@@ -60,13 +60,13 @@ var (
 				return err
 			}
 
-			ghToken := viper.GetString("githubToken")
+			ghToken := viper.GetString("GH_TOKEN")
 			if ghToken == "" {
 				return errors.New("GitHub credentials were not found. Please run `warden configure`.")
 			}
 
 			ts := oauth2.StaticTokenSource(
-				&oauth2.Token{AccessToken: viper.GetString("githubToken")},
+				&oauth2.Token{AccessToken: ghToken},
 			)
 			tc := oauth2.NewClient(context.Background(), ts)
 			client := github.NewClient(tc)

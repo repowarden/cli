@@ -40,8 +40,10 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 
-	// this won't create the "warden" dir, need to fix that
 	viper.SetConfigFile(os.ExpandEnv("$HOME/.config/warden/creds.yaml"))
+
+	viper.SetEnvPrefix("RW")
+	viper.AutomaticEnv()
 	viper.ReadInConfig()
 	viper.WriteConfig()
 }
