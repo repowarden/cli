@@ -20,6 +20,8 @@ var (
 	configureCmd = &cobra.Command{
 		Use:   "configure",
 		Short: "Store your GitHub token other commands can work",
+		Long: `Store your GitHub token other commands can work,
+Optionally, the environment variable 'RW_GH_TOKEN' can be set. This is useful in CI environments.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			answers := struct {
@@ -37,7 +39,7 @@ var (
 				return err
 			}
 
-			viper.Set("githubtoken", answers.GitHubToken)
+			viper.Set("GH_TOKEN", answers.GitHubToken)
 
 			err = viper.WriteConfig()
 			if err != nil {
