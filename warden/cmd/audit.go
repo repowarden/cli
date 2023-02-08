@@ -31,6 +31,36 @@ type UserPermission struct {
 	Permission string `yaml:"permission"`
 }
 
+func (this *UserPermission) GetUsername() string {
+
+	if this.IsUser() {
+		return this.Username
+	}
+
+	return this.Username[this.SlashPos()+1 : len(this.Username)]
+}
+
+func (this *UserPermission) IsTeam() bool {
+	return !this.IsUser()
+}
+
+func (this *UserPermission) IsUser() bool {
+	return this.SlashPos() == -1
+}
+
+func (this *UserPermission) Org() string {
+
+	if this.IsUser() {
+		return this.Username
+	}
+
+	return this.Username[0:this.SlashPos()]
+}
+
+func (this *UserPermission) SlashPos() int {
+	return strings.Index(this.Username, "/")
+}
+
 type PolicyFile struct {
 	DefaultBranch  string           `yaml:"defaultBranch"`
 	Archived       bool             `yaml:"archived"` // include archived repos in lookup?
@@ -182,35 +212,52 @@ var (
 
 					if policy.AccessStrategy == "available" || policy.AccessStrategy == "" {
 
-						// for each team we're checking for
+						// for each user/team we're checking for
 						for _, user := range policy.Access {
 
 							found := ""
 							matched := ""
 
+							// only checking teams for now
+							if user.IsUser() {
+								continue
+							}
+
+							// for teams, the team check only matters if we're in the same org
+							if user.Org() != repo.Owner {
+								continue
+							}
+
 							for _, team := range teams {
 
-								if user.Username == team.GetName() {
+								if user.GetUsername() == team.GetSlug() {
 
 									found = user.Username
 
-									if user.Permission == team.GetPermission() {
-										matched = user.Permission
+									if user.Permission != team.GetPermission() {
+										matched = team.GetPermission()
 									}
 								}
 							}
 
-							if found != "" {
+							if found == "" {
 								policyErrors = append(policyErrors, PolicyError{
 									repoDef,
 									ERR_ACCESS_MISSING,
-									[]any{found},
+									[]any{
+										"team",
+										user.Username,
+									},
 								})
 							} else if matched != "" {
 								policyErrors = append(policyErrors, PolicyError{
 									repoDef,
-									ERR_ACCESS_WRONG,
-									[]any{matched},
+									ERR_ACCESS_DIFFERENT,
+									[]any{
+										found,
+										user.Permission,
+										matched,
+									},
 								})
 							}
 						}

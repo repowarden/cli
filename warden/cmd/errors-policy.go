@@ -3,8 +3,8 @@ package cmd
 import "fmt"
 
 const (
-	ERR_ACCESS_MISSING    = "The repository %s doesn't have the user."
-	ERR_ACCESS_WRONG      = "The repository %s's user's permission is incorrect."
+	ERR_ACCESS_MISSING    = "The user/team %s is not defined."
+	ERR_ACCESS_DIFFERENT  = "The user/team '%s' should have the permission '%s', not '%s'."
 	ERR_BRANCH_DEFAULT    = "The default branch should be '%s', not '%s'."
 	ERR_LABEL_EXTRA       = "The label '%s' is present and shouldn't be."
 	ERR_LABEL_MISSING     = "The label '%s' is missing."
