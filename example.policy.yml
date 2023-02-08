@@ -15,6 +15,11 @@ labelStrategy: "available"
 # Access permissions allowed. The first example is a regular user and the
 # second one is a team example.
 # Regular users aren't supported yet and will be ignored.
+#   permissions can be:
+#     - read
+#     - push
+#     - maintain
+#     - admin
 access:
   - user: felicianotech
     permission: admin
