@@ -205,8 +205,16 @@ var (
 				// if access permissions are to be checked...
 				if len(policy.Access) > 0 {
 
-					teams, _, err := client.Repositories.ListTeams(context.Background(), repo.Owner, repo.Name, nil)
-					if err != nil {
+					teams, resp, err := client.Repositories.ListTeams(context.Background(), repo.Owner, repo.Name, nil)
+					if resp.StatusCode == 404 {
+
+						// considering this repo worked for other audits but not this, this likely
+						// means we don't have admin access in order to check teams
+						fmt.Fprintf(os.Stderr, "Error: couldn't pull the teams for %s.\nThis is likely a permission issue with the token being used to run Warden. If\nthe user whose token is being used doesn't have admin access\nto the repo, teams can't be pulled.\n\n", repoDef.URL)
+
+						// skip the rest
+						policy.Access = nil
+					} else if err != nil {
 						return err
 					}
 
