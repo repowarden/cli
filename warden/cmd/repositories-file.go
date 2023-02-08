@@ -12,10 +12,10 @@ type RepositoryDefinition struct {
 	Tags []string `yaml:"tags,omitempty"`
 }
 
-//=============================================================================
+// =============================================================================
 // A list of repositories belonging to a group, the top-level object in a
 // repositories.yml file.
-//=============================================================================
+// =============================================================================
 type RepositoryGroup struct {
 	Group        string                 `yaml:"group"`
 	Repositories []RepositoryDefinition `yaml:"repositories"`
@@ -65,9 +65,9 @@ func (this *RepositoryGroup) GetRepositories(listChildren bool) []RepositoryDefi
 	return repos
 }
 
-//=============================================================================
+// =============================================================================
 // A repositories.yml file
-//=============================================================================
+// =============================================================================
 type RepositoriesFile []*RepositoryGroup
 
 // Get a group from a repositories file.
@@ -111,7 +111,13 @@ func (this *RepositoriesFile) RepositoriesByGroup(group string) []RepositoryDefi
 // override an existing file.
 func (this RepositoriesFile) save(customPath string, create bool) (string, error) {
 
-	content, err := yaml.Marshal(this)
+	// we never actually want the all group so remove it
+	all, err := this.Group("all")
+	if err != nil {
+		return "", err
+	}
+
+	content, err := yaml.Marshal(all.Children)
 	if err != nil {
 		return "", fmt.Errorf("Unable to create YAML from repositories data. Something is wrong.")
 	}
