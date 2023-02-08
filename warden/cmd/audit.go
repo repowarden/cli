@@ -214,12 +214,13 @@ var (
 						return errors.New("The accessStrategy of " + policy.AccessStrategy + " isn't valid.")
 					}
 
+					onlyMatches := make(map[string]bool)
+
 					// for each user/team we're checking for
 					for _, user := range policy.Access {
 
 						found := ""
 						matched := ""
-						onlyMatches := make(map[string]bool)
 
 						// only checking teams for now
 						if user.IsUser() {
@@ -233,7 +234,7 @@ var (
 
 						for _, team := range teams {
 
-							fullTeamName := repo.Owner + "/" + team.GetSlug()
+							fullTeamName := strings.TrimSpace(repo.Owner + "/" + team.GetSlug())
 
 							if user.GetUsername() == team.GetSlug() {
 
@@ -244,8 +245,8 @@ var (
 									matched = team.GetPermission()
 								}
 							} else {
-								foundAlready, err := onlyMatches[fullTeamName]
-								if !foundAlready || err {
+
+								if onlyMatches[fullTeamName] != true {
 									onlyMatches[fullTeamName] = false
 								}
 							}
@@ -272,21 +273,23 @@ var (
 							})
 						}
 
-						if policy.AccessStrategy == "only" {
+					}
 
-							for team, _ := range onlyMatches {
+					if policy.AccessStrategy == "only" {
 
-								if onlyMatches[team] == false {
-									policyErrors = append(policyErrors, PolicyError{
-										repoDef,
-										ERR_ACCESS_EXTRA,
-										[]any{
-											team,
-										},
-									})
-								}
+						for team, _ := range onlyMatches {
+
+							if onlyMatches[team] == false {
+								policyErrors = append(policyErrors, PolicyError{
+									repoDef,
+									ERR_ACCESS_EXTRA,
+									[]any{
+										team,
+									},
+								})
 							}
 						}
+
 					}
 				}
 
