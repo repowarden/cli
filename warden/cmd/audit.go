@@ -210,59 +210,84 @@ var (
 						return err
 					}
 
-					if policy.AccessStrategy == "available" || policy.AccessStrategy == "" {
+					if !slices.Contains([]string{"available", "only", ""}, policy.AccessStrategy) {
+						return errors.New("The accessStrategy of " + policy.AccessStrategy + " isn't valid.")
+					}
 
-						// for each user/team we're checking for
-						for _, user := range policy.Access {
+					// for each user/team we're checking for
+					for _, user := range policy.Access {
 
-							found := ""
-							matched := ""
+						found := ""
+						matched := ""
+						onlyMatches := make(map[string]bool)
 
-							// only checking teams for now
-							if user.IsUser() {
-								continue
-							}
+						// only checking teams for now
+						if user.IsUser() {
+							continue
+						}
 
-							// for teams, the team check only matters if we're in the same org
-							if user.Org() != repo.Owner {
-								continue
-							}
+						// for teams, the team check only matters if we're in the same org
+						if user.Org() != repo.Owner {
+							continue
+						}
 
-							for _, team := range teams {
+						for _, team := range teams {
 
-								if user.GetUsername() == team.GetSlug() {
+							fullTeamName := repo.Owner + "/" + team.GetSlug()
 
-									found = user.Username
+							if user.GetUsername() == team.GetSlug() {
 
-									if user.Permission != team.GetPermission() {
-										matched = team.GetPermission()
-									}
+								found = user.Username
+								onlyMatches[fullTeamName] = true
+
+								if user.Permission != team.GetPermission() {
+									matched = team.GetPermission()
+								}
+							} else {
+								foundAlready, err := onlyMatches[fullTeamName]
+								if !foundAlready || err {
+									onlyMatches[fullTeamName] = false
 								}
 							}
+						}
 
-							if found == "" {
-								policyErrors = append(policyErrors, PolicyError{
-									repoDef,
-									ERR_ACCESS_MISSING,
-									[]any{
-										"team",
-										user.Username,
-									},
-								})
-							} else if matched != "" {
-								policyErrors = append(policyErrors, PolicyError{
-									repoDef,
-									ERR_ACCESS_DIFFERENT,
-									[]any{
-										found,
-										user.Permission,
-										matched,
-									},
-								})
+						if found == "" {
+							policyErrors = append(policyErrors, PolicyError{
+								repoDef,
+								ERR_ACCESS_MISSING,
+								[]any{
+									"team",
+									user.Username,
+								},
+							})
+						} else if matched != "" {
+							policyErrors = append(policyErrors, PolicyError{
+								repoDef,
+								ERR_ACCESS_DIFFERENT,
+								[]any{
+									found,
+									user.Permission,
+									matched,
+								},
+							})
+						}
+
+						if policy.AccessStrategy == "only" {
+
+							for team, _ := range onlyMatches {
+
+								fmt.Printf("The team is: %s\n", team) //DEBUG
+								if onlyMatches[team] == false {
+									policyErrors = append(policyErrors, PolicyError{
+										repoDef,
+										ERR_ACCESS_EXTRA,
+										[]any{
+											team,
+										},
+									})
+								}
 							}
 						}
-					} else {
-						return errors.New("The accessStrategy of " + policy.AccessStrategy + " isn't valid.")
 					}
 				}
 

@@ -3,6 +3,7 @@ package cmd
 import "fmt"
 
 const (
+	ERR_ACCESS_EXTRA      = "The user/team '%s' is present and shouldn't be."
 	ERR_ACCESS_MISSING    = "The user/team %s is not defined."
 	ERR_ACCESS_DIFFERENT  = "The user/team '%s' should have the permission '%s', not '%s'."
 	ERR_BRANCH_DEFAULT    = "The default branch should be '%s', not '%s'."
