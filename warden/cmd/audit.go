@@ -16,11 +16,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Repo struct {
-	org  string
-	repo string
-}
-
 type LicenseRule struct {
 	Scope string   `yaml:"scope"`
 	Names []string `yaml:"names"`
