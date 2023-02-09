@@ -6,6 +6,7 @@ const (
 	ERR_ACCESS_EXTRA      = "The user/team '%s' is present and shouldn't be."
 	ERR_ACCESS_MISSING    = "The user/team %s is not defined."
 	ERR_ACCESS_DIFFERENT  = "The user/team '%s' should have the permission '%s', not '%s'."
+	ERR_ACCESS_STRATEGY   = "'%s' is not a valid access strategy."
 	ERR_BRANCH_DEFAULT    = "The default branch should be '%s', not '%s'."
 	ERR_LABEL_EXTRA       = "The label '%s' is present and shouldn't be."
 	ERR_LABEL_MISSING     = "The label '%s' is missing."
@@ -17,13 +18,13 @@ const (
 )
 
 // Represents a error when applying a policy, with contextual information.
-type PolicyError struct {
-	repository RepositoryDefinition
+type policyError struct {
+	repository *wardenRepo
 	message    string
 	values     []any
 }
 
 // Properly print out a policy error.
-func (this PolicyError) Error() string {
+func (this policyError) Error() string {
 	return fmt.Sprintf(this.message, this.values...)
 }
