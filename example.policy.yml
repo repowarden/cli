@@ -21,17 +21,23 @@ labelStrategy: "available"
 #     - maintain
 #     - admin
 access:
-  - user: felicianotech
-    permission: admin
-  - user: cloud-unpacked/tech-writers
-    permission: push
-# The access strategy determines the relationship between the permissions listed
-# here and how we audit
-# available - the repo needs to have the permissions listed. Any additional
-# permissions are fine.
-# only - the repo should only have the permissions listed. Any additional
-# permissions are not okay.
-accessStrategy: "available"
+  - permissions:
+      - user: felicianotech
+        permission: admin
+      - user: cloud-unpacked/tech-writers
+        permission: push
+    # The access strategy determines the relationship between the permissions listed
+    # here and how we audit
+    # available - the repo needs to have the permissions listed. Any additional
+    # permissions are fine.
+    # only - the repo should only have the permissions listed. Any additional
+    # permissions are not okay.
+    strategy: "available"
+  - permissions:
+      - user: felicianotech
+        permission: maintain
+    strategy: "only"
+    tags: [ "hugo" ]
 
 # For CODEOWNERS checks, use a pipe multistring to specify what the code owners file should be.
 # Warden will also repo if there is any syntax errors with the file

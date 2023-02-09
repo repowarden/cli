@@ -11,61 +11,9 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/google/go-github/v50/github"
-	"github.com/repowarden/cli/warden/vcsurl"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-type LicenseRule struct {
-	Scope string   `yaml:"scope"`
-	Names []string `yaml:"names"`
-}
-
-type UserPermission struct {
-	Username   string `yaml:"user"`
-	Permission string `yaml:"permission"`
-}
-
-func (this *UserPermission) GetUsername() string {
-
-	if this.IsUser() {
-		return this.Username
-	}
-
-	return this.Username[this.SlashPos()+1 : len(this.Username)]
-}
-
-func (this *UserPermission) IsTeam() bool {
-	return !this.IsUser()
-}
-
-func (this *UserPermission) IsUser() bool {
-	return this.SlashPos() == -1
-}
-
-func (this *UserPermission) Org() string {
-
-	if this.IsUser() {
-		return this.Username
-	}
-
-	return this.Username[0:this.SlashPos()]
-}
-
-func (this *UserPermission) SlashPos() int {
-	return strings.Index(this.Username, "/")
-}
-
-type PolicyFile struct {
-	DefaultBranch  string           `yaml:"defaultBranch"`
-	Archived       bool             `yaml:"archived"` // include archived repos in lookup?
-	License        *LicenseRule     `yaml:"license"`
-	Labels         []string         `yaml:"labels"`
-	LabelStrategy  string           `yaml:"labelStrategy"`
-	Access         []UserPermission `yaml:"access"`
-	AccessStrategy string           `yaml:"accessStrategy"`
-	CodeOwners     string           `yaml:"codeowners"`
-}
 
 var (
 	auditCmd = &cobra.Command{
@@ -73,7 +21,7 @@ var (
 		Short: "Validates that 1 or more repos meet a set of policy",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			var policyErrors []PolicyError
+			var policyErrors []policyError
 
 			repoFile, _, err := loadRepositoriesFile(repositoriesFileFl)
 			if err != nil {
@@ -101,12 +49,12 @@ var (
 				return err
 			}
 
-			for _, repoDef := range group.GetRepositories(childrenFl) {
+			repos, err := WardenRepos(group.GetRepositories(childrenFl))
+			if err != nil {
+				return err
+			}
 
-				repo, err := vcsurl.Parse(repoDef.URL)
-				if err != nil {
-					return fmt.Errorf("The following URL cannot be parsed: %s", repoDef.URL)
-				}
+			for _, repo := range repos {
 
 				repoResp, _, _ := client.Repositories.Get(context.Background(), repo.Owner, repo.Name)
 
@@ -115,8 +63,8 @@ var (
 				}
 
 				if repoResp.GetDefaultBranch() != policy.DefaultBranch {
-					policyErrors = append(policyErrors, PolicyError{
-						repoDef,
+					policyErrors = append(policyErrors, policyError{
+						repo,
 						ERR_BRANCH_DEFAULT,
 						[]any{policy.DefaultBranch, repoResp.GetDefaultBranch()},
 					})
@@ -125,14 +73,14 @@ var (
 				// if license is to be checked...
 				if policy.License != nil && policy.License.Scope == repoResp.GetVisibility() || policy.License.Scope == "all" {
 					if repoResp.GetLicense().GetKey() == "" {
-						policyErrors = append(policyErrors, PolicyError{
-							repoDef,
+						policyErrors = append(policyErrors, policyError{
+							repo,
 							ERR_LICENSE_MISSING,
 							nil,
 						})
 					} else if !slices.Contains(policy.License.Names, repoResp.GetLicense().GetKey()) {
-						policyErrors = append(policyErrors, PolicyError{
-							repoDef,
+						policyErrors = append(policyErrors, policyError{
+							repo,
 							ERR_LICENSE_DIFFERENT,
 							[]any{policy.License.Names, repoResp.GetLicense().GetKey()},
 						})
@@ -162,8 +110,8 @@ var (
 							}
 
 							if !found {
-								policyErrors = append(policyErrors, PolicyError{
-									repoDef,
+								policyErrors = append(policyErrors, policyError{
+									repo,
 									ERR_LABEL_MISSING,
 									[]any{label},
 								})
@@ -184,8 +132,8 @@ var (
 							}
 
 							if found != "" {
-								policyErrors = append(policyErrors, PolicyError{
-									repoDef,
+								policyErrors = append(policyErrors, policyError{
+									repo,
 									ERR_LABEL_EXTRA,
 									[]any{found},
 								})
@@ -205,7 +153,7 @@ var (
 
 						// considering this repo worked for other audits but not this, this likely
 						// means we don't have admin access in order to check teams
-						fmt.Fprintf(os.Stderr, "Error: couldn't pull the teams for %s.\nThis is likely a permission issue with the token being used to run Warden. If\nthe user whose token is being used doesn't have admin access\nto the repo, teams can't be pulled.\n\n", repoDef.URL)
+						fmt.Fprintf(os.Stderr, "Error: couldn't pull the teams for %s.\nThis is likely a permission issue with the token being used to run Warden. If\nthe user whose token is being used doesn't have admin access\nto the repo, teams can't be pulled.\n\n", repo.ToHTTPS())
 
 						// skip the rest
 						policy.Access = nil
@@ -213,86 +161,8 @@ var (
 						return err
 					}
 
-					if !slices.Contains([]string{"available", "only", ""}, policy.AccessStrategy) {
-						return errors.New("The accessStrategy of " + policy.AccessStrategy + " isn't valid.")
-					}
-
-					onlyMatches := make(map[string]bool)
-
-					// for each user/team we're checking for
-					for _, user := range policy.Access {
-
-						found := ""
-						matched := ""
-
-						// only checking teams for now
-						if user.IsUser() {
-							continue
-						}
-
-						// for teams, the team check only matters if we're in the same org
-						if user.Org() != repo.Owner {
-							continue
-						}
-
-						for _, team := range teams {
-
-							fullTeamName := strings.TrimSpace(repo.Owner + "/" + team.GetSlug())
-
-							if user.GetUsername() == team.GetSlug() {
-
-								found = user.Username
-								onlyMatches[fullTeamName] = true
-
-								if user.Permission != team.GetPermission() {
-									matched = team.GetPermission()
-								}
-							} else {
-
-								if onlyMatches[fullTeamName] != true {
-									onlyMatches[fullTeamName] = false
-								}
-							}
-						}
-
-						if found == "" {
-							policyErrors = append(policyErrors, PolicyError{
-								repoDef,
-								ERR_ACCESS_MISSING,
-								[]any{
-									"team",
-									user.Username,
-								},
-							})
-						} else if matched != "" {
-							policyErrors = append(policyErrors, PolicyError{
-								repoDef,
-								ERR_ACCESS_DIFFERENT,
-								[]any{
-									found,
-									user.Permission,
-									matched,
-								},
-							})
-						}
-
-					}
-
-					if policy.AccessStrategy == "only" {
-
-						for team, _ := range onlyMatches {
-
-							if onlyMatches[team] == false {
-								policyErrors = append(policyErrors, PolicyError{
-									repoDef,
-									ERR_ACCESS_EXTRA,
-									[]any{
-										team,
-									},
-								})
-							}
-						}
-
+					for _, accessPolicy := range policy.Access {
+						policyErrors = append(policyErrors, auditAccessPolicy(accessPolicy, repo, teams)...)
 					}
 				}
 
@@ -305,8 +175,8 @@ var (
 						switch err.(type) {
 						case *github.ErrorResponse:
 							if err.(*github.ErrorResponse).Response != nil && err.(*github.ErrorResponse).Response.StatusCode == 404 {
-								policyErrors = append(policyErrors, PolicyError{
-									repoDef,
+								policyErrors = append(policyErrors, policyError{
+									repo,
 									ERR_CO_MISSING,
 									nil,
 								})
@@ -329,8 +199,8 @@ var (
 
 					// check if the files match
 					if policyContent != content {
-						policyErrors = append(policyErrors, PolicyError{
-							repoDef,
+						policyErrors = append(policyErrors, policyError{
+							repo,
 							ERR_CO_DIFFERENT,
 							nil,
 						})
@@ -349,8 +219,8 @@ var (
 							suggestions = append(suggestions, "    > "+coErr.GetSuggestion())
 						}
 
-						policyErrors = append(policyErrors, PolicyError{
-							repoDef,
+						policyErrors = append(policyErrors, policyError{
+							repo,
 							ERR_CO_SYNTAX,
 							[]any{strings.Join(suggestions, "\n")},
 						})
@@ -366,9 +236,9 @@ var (
 
 				for _, err := range policyErrors {
 
-					if curRepo != err.repository.URL {
+					if curRepo != err.repository.ToHTTPS() {
 
-						curRepo = err.repository.URL
+						curRepo = err.repository.ToHTTPS()
 						fmt.Fprintf(os.Stderr, "%s:\n", curRepo)
 					}
 
@@ -395,4 +265,20 @@ func init() {
 	AddRepositoriesFileFlag(auditCmd)
 
 	rootCmd.AddCommand(auditCmd)
+}
+
+func tagsMatched(policyTags, repoTags []string) bool {
+
+	// if policy doesn't specify tags, then all repos are allowed
+	if len(policyTags) == 0 {
+		return true
+	}
+
+	for _, tag := range policyTags {
+		if slices.Contains(repoTags, tag) {
+			return true
+		}
+	}
+
+	return false
 }

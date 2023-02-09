@@ -26,7 +26,7 @@ type Repository struct {
 }
 
 func (this *Repository) ToHTTPS() string {
-	return fmt.Sprintf("https://%s/%s/%s.git", this.Host, this.Owner, this.Name)
+	return fmt.Sprintf("https://%s/%s/%s", this.Host, this.Owner, this.Name)
 }
 
 func (this *Repository) ToSSH() string {

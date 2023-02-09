@@ -37,15 +37,15 @@ func TestToHTTPS(t *testing.T) {
 	}{
 		{
 			start: "https://github.com/felicianotech/sonar.git",
-			end:   "https://github.com/felicianotech/sonar.git",
+			end:   "https://github.com/felicianotech/sonar",
 		},
 		{
 			start: "https://github.com/felicianotech/sonar",
-			end:   "https://github.com/felicianotech/sonar.git",
+			end:   "https://github.com/felicianotech/sonar",
 		},
 		{
 			start: "git@github.com:felicianotech/sonar.git",
-			end:   "https://github.com/felicianotech/sonar.git",
+			end:   "https://github.com/felicianotech/sonar",
 		},
 	}
 
