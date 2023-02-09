@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"golang.org/x/exp/slices"
 	"golang.org/x/oauth2"
@@ -166,64 +165,11 @@ var (
 					}
 				}
 
-				// if the CODEOWNERS file is to be checked...
-				if policy.CodeOwners != "" {
+				// if codeowners are to to be checked...
+				if len(policy.Codeowners) > 0 {
 
-					file, _, _, err := client.Repositories.GetContents(context.Background(), repo.Owner, repo.Name, ".github/CODEOWNERS", nil)
-					if err != nil {
-
-						switch err.(type) {
-						case *github.ErrorResponse:
-							if err.(*github.ErrorResponse).Response != nil && err.(*github.ErrorResponse).Response.StatusCode == 404 {
-								policyErrors = append(policyErrors, policyError{
-									repo,
-									ERR_CO_MISSING,
-									nil,
-								})
-
-								continue
-							} else {
-								return err
-							}
-						default:
-							return err
-						}
-					}
-
-					content, err := file.GetContent()
-					if err != nil {
-						return err
-					}
-					// handle manual tabs
-					policyContent := fmt.Sprintf(policy.CodeOwners)
-
-					// check if the files match
-					if policyContent != content {
-						policyErrors = append(policyErrors, policyError{
-							repo,
-							ERR_CO_DIFFERENT,
-							nil,
-						})
-					}
-
-					// check for codeowners syntax errors
-					coErrs, _, err := client.Repositories.GetCodeownersErrors(context.Background(), repo.Owner, repo.Name)
-					if err != nil {
-						return err
-					}
-
-					if len(coErrs.Errors) > 0 {
-
-						var suggestions []string
-						for _, coErr := range coErrs.Errors {
-							suggestions = append(suggestions, "    > "+coErr.GetSuggestion())
-						}
-
-						policyErrors = append(policyErrors, policyError{
-							repo,
-							ERR_CO_SYNTAX,
-							[]any{strings.Join(suggestions, "\n")},
-						})
+					for _, coPolicy := range policy.Codeowners {
+						policyErrors = append(policyErrors, auditCodeownersPolicy(coPolicy, repo, client)...)
 					}
 				}
 			}
