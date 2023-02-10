@@ -158,7 +158,7 @@ var (
 
 						// considering this repo worked for other audits but not this, this likely
 						// means we don't have admin access in order to check teams
-						fmt.Fprintf(os.Stderr, "Error: couldn't pull the teams for %s.\nThis is likely a permission issue with the token being used to run Warden. If\nthe user whose token is being used doesn't have admin access\nto the repo, teams can't be pulled.\n\n", repo.ToHTTPS())
+						results.add(repo, RESULT_WARNING, fmt.Sprintf("Couldn't pull the teams for %s.\nThis is likely a permission issue with the token being used to run Warden. If\nthe user whose token is being used doesn't have admin access\nto the repo, teams can't be pulled.\n\n", repo.ToHTTPS()))
 
 						// skip the rest
 						policy.Access = nil
@@ -180,9 +180,20 @@ var (
 				}
 			}
 
-			if len(results) > 0 {
+			fmt.Printf(
+				`======================================================================
+                         Warden Audit Results
 
-				fmt.Fprintf(os.Stderr, "The audit failed.\n\n")
+      group: %s      repos checked: %d      errors: %d
+======================================================================
+
+`,
+				groupFl,
+				len(repos),
+				len(results),
+			)
+
+			if len(results) > 0 {
 
 				var curRepo string
 
@@ -194,7 +205,7 @@ var (
 						fmt.Fprintf(os.Stderr, "%s:\n", curRepo)
 					}
 
-					fmt.Fprintf(os.Stderr, "  - %s\n", err)
+					fmt.Fprintf(os.Stderr, "  \033[31mx\033[0m %s\n", err)
 				}
 
 				fmt.Println("") // intentional
