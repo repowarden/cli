@@ -1,7 +1,5 @@
 package cmd
 
-import "fmt"
-
 const (
 	ERR_ACCESS_EXTRA      = "The user/team '%s' is present and shouldn't be."
 	ERR_ACCESS_MISSING    = "The user/team %s is not defined."
@@ -16,15 +14,3 @@ const (
 	ERR_CO_MISSING        = "The CODEOWNERS file is missing."
 	ERR_CO_SYNTAX         = "The CODEOWNERS file has syntax errors:\n%s"
 )
-
-// Represents a error when applying a policy, with contextual information.
-type policyError struct {
-	repository *wardenRepo
-	message    string
-	values     []any
-}
-
-// Properly print out a policy error.
-func (this policyError) Error() string {
-	return fmt.Sprintf(this.message, this.values...)
-}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/google/go-github/v50/github"
 )
@@ -16,9 +15,9 @@ type codeownersPolicy struct {
 }
 
 // Does the work to check codeowners policy against a repository
-func auditCodeownersPolicy(policy codeownersPolicy, repo *wardenRepo, client *github.Client) []policyError {
+func auditCodeownersPolicy(policy codeownersPolicy, repo *wardenRepo, client *github.Client) auditResults {
 
-	var policyErrors []policyError
+	var results auditResults
 
 	if !tagsMatched(policy.Tags, repo.Tags()) {
 		return nil
@@ -30,13 +29,13 @@ func auditCodeownersPolicy(policy codeownersPolicy, repo *wardenRepo, client *gi
 		switch err.(type) {
 		case *github.ErrorResponse:
 			if err.(*github.ErrorResponse).Response != nil && err.(*github.ErrorResponse).Response.StatusCode == 404 {
-				policyErrors = append(policyErrors, policyError{
+				results.add(
 					repo,
+					RESULT_ERROR,
 					ERR_CO_MISSING,
-					nil,
-				})
+				)
 
-				return policyErrors
+				return results
 			} else {
 				fmt.Fprintf(os.Stderr, err.Error())
 				return nil
@@ -55,11 +54,11 @@ func auditCodeownersPolicy(policy codeownersPolicy, repo *wardenRepo, client *gi
 
 	// check if the files match
 	if policy.Content != content {
-		policyErrors = append(policyErrors, policyError{
+		results.add(
 			repo,
+			RESULT_ERROR,
 			ERR_CO_DIFFERENT,
-			nil,
-		})
+		)
 	}
 
 	// check for codeowners syntax errors
@@ -76,12 +75,13 @@ func auditCodeownersPolicy(policy codeownersPolicy, repo *wardenRepo, client *gi
 			suggestions = append(suggestions, "    > "+coErr.GetSuggestion())
 		}
 
-		policyErrors = append(policyErrors, policyError{
+		results.add(
 			repo,
+			RESULT_ERROR,
 			ERR_CO_SYNTAX,
-			[]any{strings.Join(suggestions, "\n")},
-		})
+			suggestions,
+		)
 	}
 
-	return policyErrors
+	return results
 }
