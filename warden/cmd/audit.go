@@ -184,28 +184,35 @@ var (
 				`======================================================================
                          Warden Audit Results
 
-      group: %s      repos checked: %d      errors: %d
+     errors: %d     warnings: %d     repos: %d     group: %s
 ======================================================================
 
 `,
-				groupFl,
+				len(results.ByType(RESULT_ERROR)),
+				len(results.ByType(RESULT_WARNING)),
 				len(repos),
-				len(results),
+				groupFl,
 			)
 
 			if len(results) > 0 {
 
 				var curRepo string
 
-				for _, err := range results {
+				for _, result := range results {
 
-					if curRepo != err.repository.ToHTTPS() {
+					// print repo URL whenever we move to the next one
+					if curRepo != result.repository.ToHTTPS() {
 
-						curRepo = err.repository.ToHTTPS()
+						curRepo = result.repository.ToHTTPS()
 						fmt.Fprintf(os.Stderr, "%s:\n", curRepo)
 					}
 
-					fmt.Fprintf(os.Stderr, "  \033[31mx\033[0m %s\n", err)
+					switch result.resultType {
+					case RESULT_ERROR:
+						fmt.Fprintf(os.Stderr, "  \033[31mx\033[0m %s\n", result)
+					case RESULT_WARNING:
+						fmt.Printf("  \033[33mo\033[0m %s\n", result)
+					}
 				}
 
 				fmt.Println("") // intentional

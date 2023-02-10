@@ -38,6 +38,21 @@ func (this *auditResults) add(repo *wardenRepo, resultType auditResultType, mess
 	})
 }
 
+// Returns a subset, just the one type
+func (this *auditResults) ByType(resultType auditResultType) auditResults {
+
+	var results auditResults
+
+	for _, result := range *this {
+
+		if result.resultType == resultType {
+			results = append(results, result)
+		}
+	}
+
+	return results
+}
+
 // combine two auditResults together
 func (this *auditResults) merge(results auditResults) {
 	*this = append(*this, results...)
