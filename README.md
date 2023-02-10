@@ -133,6 +133,8 @@ Currently `warden` can audit the following items:
 - license
 - labels
 - default branch
+- codeowners
+- access permissions (for teams only right now)
 
 Run `warden help` to see all commands available.
 
