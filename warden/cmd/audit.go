@@ -20,7 +20,7 @@ var (
 		Short: "Validates that 1 or more repos meet a set of policy",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			var policyErrors []policyError
+			var results auditResults
 
 			repoFile, _, err := loadRepositoriesFile(repositoriesFileFl)
 			if err != nil {
@@ -62,27 +62,31 @@ var (
 				}
 
 				if repoResp.GetDefaultBranch() != policy.DefaultBranch {
-					policyErrors = append(policyErrors, policyError{
+					results.add(
 						repo,
+						RESULT_ERROR,
 						ERR_BRANCH_DEFAULT,
-						[]any{policy.DefaultBranch, repoResp.GetDefaultBranch()},
-					})
+						policy.DefaultBranch,
+						repoResp.GetDefaultBranch(),
+					)
 				}
 
 				// if license is to be checked...
 				if policy.License != nil && policy.License.Scope == repoResp.GetVisibility() || policy.License.Scope == "all" {
 					if repoResp.GetLicense().GetKey() == "" {
-						policyErrors = append(policyErrors, policyError{
+						results.add(
 							repo,
+							RESULT_ERROR,
 							ERR_LICENSE_MISSING,
-							nil,
-						})
+						)
 					} else if !slices.Contains(policy.License.Names, repoResp.GetLicense().GetKey()) {
-						policyErrors = append(policyErrors, policyError{
+						results.add(
 							repo,
+							RESULT_ERROR,
 							ERR_LICENSE_DIFFERENT,
-							[]any{policy.License.Names, repoResp.GetLicense().GetKey()},
-						})
+							policy.License.Names,
+							repoResp.GetLicense().GetKey(),
+						)
 					}
 				}
 
@@ -109,11 +113,12 @@ var (
 							}
 
 							if !found {
-								policyErrors = append(policyErrors, policyError{
+								results.add(
 									repo,
+									RESULT_ERROR,
 									ERR_LABEL_MISSING,
-									[]any{label},
-								})
+									label,
+								)
 							}
 						}
 					} else if policy.LabelStrategy == "only" {
@@ -131,11 +136,12 @@ var (
 							}
 
 							if found != "" {
-								policyErrors = append(policyErrors, policyError{
+								results.add(
 									repo,
+									RESULT_ERROR,
 									ERR_LABEL_EXTRA,
-									[]any{found},
-								})
+									found,
+								)
 							}
 						}
 					} else {
@@ -161,7 +167,7 @@ var (
 					}
 
 					for _, accessPolicy := range policy.Access {
-						policyErrors = append(policyErrors, auditAccessPolicy(accessPolicy, repo, teams)...)
+						results.merge(auditAccessPolicy(accessPolicy, repo, teams))
 					}
 				}
 
@@ -169,18 +175,18 @@ var (
 				if len(policy.Codeowners) > 0 {
 
 					for _, coPolicy := range policy.Codeowners {
-						policyErrors = append(policyErrors, auditCodeownersPolicy(coPolicy, repo, client)...)
+						results.merge(auditCodeownersPolicy(coPolicy, repo, client))
 					}
 				}
 			}
 
-			if len(policyErrors) > 0 {
+			if len(results) > 0 {
 
 				fmt.Fprintf(os.Stderr, "The audit failed.\n\n")
 
 				var curRepo string
 
-				for _, err := range policyErrors {
+				for _, err := range results {
 
 					if curRepo != err.repository.ToHTTPS() {
 
@@ -188,7 +194,7 @@ var (
 						fmt.Fprintf(os.Stderr, "%s:\n", curRepo)
 					}
 
-					fmt.Fprintf(os.Stderr, "  - %s\n", err.Error())
+					fmt.Fprintf(os.Stderr, "  - %s\n", err)
 				}
 
 				fmt.Println("") // intentional

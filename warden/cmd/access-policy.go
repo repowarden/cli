@@ -57,20 +57,23 @@ func (this *userPermission) UserSlug() string {
 }
 
 // Does the work to check an access policy against a repository
-func auditAccessPolicy(policy accessPolicy, repo *wardenRepo, teams []*github.Team) []policyError {
+func auditAccessPolicy(policy accessPolicy, repo *wardenRepo, teams []*github.Team) auditResults {
 
-	var policyErrors []policyError
+	var results auditResults
 
 	if !tagsMatched(policy.Tags, repo.Tags()) {
 		return nil
 	}
 
 	if !slices.Contains([]string{"available", "only", ""}, policy.Strategy) {
-		return []policyError{policyError{
+		results.add(
 			repo,
+			RESULT_ERROR,
 			ERR_ACCESS_STRATEGY,
-			[]any{policy.Strategy},
-		}}
+			policy.Strategy,
+		)
+
+		return results
 	}
 
 	onlyMatches := make(map[string]bool)
@@ -112,23 +115,21 @@ func auditAccessPolicy(policy accessPolicy, repo *wardenRepo, teams []*github.Te
 		}
 
 		if found == "" {
-			policyErrors = append(policyErrors, policyError{
+			results.add(
 				repo,
+				RESULT_ERROR,
 				ERR_ACCESS_MISSING,
-				[]any{
-					user.UserSlug(),
-				},
-			})
+				user.UserSlug(),
+			)
 		} else if matched != "" {
-			policyErrors = append(policyErrors, policyError{
+			results.add(
 				repo,
+				RESULT_ERROR,
 				ERR_ACCESS_DIFFERENT,
-				[]any{
-					found,
-					user.Permission,
-					matched,
-				},
-			})
+				found,
+				user.Permission,
+				matched,
+			)
 		}
 
 	}
@@ -138,17 +139,16 @@ func auditAccessPolicy(policy accessPolicy, repo *wardenRepo, teams []*github.Te
 		for team, _ := range onlyMatches {
 
 			if onlyMatches[team] == false {
-				policyErrors = append(policyErrors, policyError{
+				results.add(
 					repo,
+					RESULT_ERROR,
 					ERR_ACCESS_EXTRA,
-					[]any{
-						team,
-					},
-				})
+					team,
+				)
 			}
 		}
 
 	}
 
-	return policyErrors
+	return results
 }
