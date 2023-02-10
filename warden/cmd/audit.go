@@ -216,7 +216,9 @@ var (
 				}
 
 				fmt.Println("") // intentional
+			}
 
+			if len(results.ByType(RESULT_ERROR)) > 0 {
 				return fmt.Errorf("The audit failed. Above are the policy failures, by repository.\n")
 			}
 
