@@ -42,31 +42,64 @@
 			"default": "available"
 		},
 		"access": {
-			"description": "An array of permission objects.",
+			"description": "An array of accessPermissions.",
 			"type": "array",
 			"items": {
 				"type": "object",
 				"properties": {
-					"user": {
-						"type": "string"
+					"permissions": {
+						"description": "An array of userPermissions.",
+						"type": "array",
+						"properties": {
+							"items": {
+								"user": {
+									"type": "string"
+								},
+								"permission": {
+									"type": "string"
+								}
+							}
+						},
+						"required": [
+							"user",
+							"permission"
+						]
 					},
-					"permission": {
-						"type": "string"
+					"strategy": {
+						"description": "The theory behind how to audit access. 'available' - the repo needs to have the access listed. Any additional permissions are fine. 'only' - the repo should only have the access listed. Additional permissions are not okay.",
+						"type": "string",
+						"default": "available"
+					},
+					"tags": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
 					}
-				},
-				"required": [
-					"user",
-					"permission"
-				]
 				}
-		},
-		"accessStrategy": {
-			"description": "The theory behind how to audit access. 'available' - the repo needs to have the access listed. Any additional permissions are fine. 'only' - the repo should only have the access listed. Additional permissions are not okay.",
-			"type": "string",
-			"default": "available"
+			}
 		},
 		"codeowners": {
-			"description": "The actual text to match for a CODEOWNERS file."
+			"description": "An array of codeownerPolicies.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"content": {
+						"description": "The actual text to match for a CODEOWNERS file.",
+						"type": "string"
+					},
+					"tags": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				}
+			}
+
+
+
 		}
 	}
 }
