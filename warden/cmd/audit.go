@@ -158,7 +158,7 @@ var (
 
 						// considering this repo worked for other audits but not this, this likely
 						// means we don't have admin access in order to check teams
-						results.add(repo, RESULT_WARNING, fmt.Sprintf("Couldn't pull the teams for %s.\nThis is likely a permission issue with the token being used to run Warden. If\nthe user whose token is being used doesn't have admin access\nto the repo, teams can't be pulled.\n\n", repo.ToHTTPS()))
+						results.add(repo, RESULT_WARNING, fmt.Sprintf("Couldn't pull teams. There's a visibility issue here."))
 
 						// skip the rest
 						policy.Access = nil
