@@ -15,6 +15,8 @@ import (
 )
 
 var (
+	branchFl string
+
 	auditCmd = &cobra.Command{
 		Use:   "audit",
 		Short: "Validates that 1 or more repos meet a set of policy",
@@ -55,10 +57,19 @@ var (
 
 			for _, repo := range repos {
 
+				var currentBranch string
+
 				repoResp, _, _ := client.Repositories.Get(context.Background(), repo.Owner, repo.Name)
 
 				if repoResp.GetArchived() != policy.Archived {
 					continue
+				}
+
+				// check if we're working with the default branch or a specific one
+				if branchFl != "" {
+					currentBranch = branchFl
+				} else {
+					currentBranch = repoResp.GetDefaultBranch()
 				}
 
 				if repoResp.GetDefaultBranch() != policy.DefaultBranch {
@@ -175,7 +186,7 @@ var (
 				if len(policy.Codeowners) > 0 {
 
 					for _, coPolicy := range policy.Codeowners {
-						results.merge(auditCodeownersPolicy(coPolicy, repo, client))
+						results.merge(auditCodeownersPolicy(coPolicy, repo, client, currentBranch))
 					}
 				}
 			}
@@ -235,6 +246,8 @@ func init() {
 	AddGroupFlag(auditCmd)
 	AddPolicyFileFlag(auditCmd)
 	AddRepositoriesFileFlag(auditCmd)
+
+	auditCmd.PersistentFlags().StringVar(&branchFl, "branch", "", "git branch to audit (for applicable polcies")
 
 	rootCmd.AddCommand(auditCmd)
 }

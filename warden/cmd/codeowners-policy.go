@@ -14,8 +14,8 @@ type codeownersPolicy struct {
 	Tags    []string `yaml:"tags"`
 }
 
-// Does the work to check codeowners policy against a repository
-func auditCodeownersPolicy(policy codeownersPolicy, repo *wardenRepo, client *github.Client) auditResults {
+// Does the work to check codeowners policy against a repository and branch
+func auditCodeownersPolicy(policy codeownersPolicy, repo *wardenRepo, client *github.Client, branch string) auditResults {
 
 	var results auditResults
 
@@ -23,7 +23,7 @@ func auditCodeownersPolicy(policy codeownersPolicy, repo *wardenRepo, client *gi
 		return nil
 	}
 
-	file, _, _, err := client.Repositories.GetContents(context.Background(), repo.Owner, repo.Name, ".github/CODEOWNERS", nil)
+	file, _, _, err := client.Repositories.GetContents(context.Background(), repo.Owner, repo.Name, ".github/CODEOWNERS", &github.RepositoryContentGetOptions{Ref: branch})
 	if err != nil {
 
 		switch err.(type) {
