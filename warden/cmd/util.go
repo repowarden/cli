@@ -19,7 +19,7 @@ func loadPolicyFile(customPath string) (*PolicyFile, []byte, error) {
 	var yamlContent []byte
 	var err error
 
-	yamlContent, err = loadYAMLFile("policy.yml", customPath)
+	yamlContent, err = loadYAMLFile(customPath, "policy.yml")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -41,7 +41,7 @@ func loadRepositoriesFile(customPath string) (*RepositoriesFile, []byte, error) 
 	var yamlContent []byte
 	var err error
 
-	yamlContent, err = loadYAMLFile("repositories.yml", customPath)
+	yamlContent, err = loadYAMLFile(customPath, "repositories.yml")
 	if err != nil {
 		return nil, nil, fmt.Errorf("./repositories.yml' was not found. The file either doesn't exist, you're in the wrong directory, or the '--repositoriesFile' flag needs to be set.")
 	}
