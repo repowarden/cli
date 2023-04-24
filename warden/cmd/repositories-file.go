@@ -65,6 +65,30 @@ func (this *RepositoryGroup) GetRepositories(listChildren bool) []RepositoryDefi
 	return repos
 }
 
+// Remove a repository from the group
+func (this *RepositoryGroup) Remove(repoDef RepositoryDefinition) bool {
+
+	repos := this.Repositories
+
+	for i, repo := range repos {
+
+		if repoDef.URL == repo.URL {
+
+			repos[i] = repos[len(repos)-1]
+			repos = repos[:len(repos)-1]
+			return true
+		}
+	}
+
+	for _, group := range this.Children {
+		if group.Remove(repoDef) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // =============================================================================
 // A repositories.yml file
 // =============================================================================
