@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  gor: hubci/goreleaser@1.0
+  gor: hubci/goreleaser@2.3
   osd: hubci/sphere@0.2
   codecov: codecov/codecov@3.2
 
@@ -30,8 +30,8 @@ workflows:
       - test
       - gor/release:
           name: goreleaser-snapshot
-          version: "1.16.2"
-          go-version: "1.20.2"
+          version: "1.17.2"
+          go-version: "1.20.3"
           dry-run: true
           post-steps:
             - persist_to_workspace:
@@ -65,8 +65,8 @@ workflows:
               only: /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
       - gor/release:
           name: goreleaser-publish
-          version: "1.16.2"
-          go-version: "1.20.2"
+          version: "1.17.2"
+          go-version: "1.20.3"
           filters: *semverFilters
           post-steps:
             - persist_to_workspace:
@@ -82,7 +82,7 @@ workflows:
 jobs:
   test:
     docker:
-      - image: cimg/go:1.20.2
+      - image: cimg/go:1.20.3
     steps:
       - checkout
       - restore_cache:
