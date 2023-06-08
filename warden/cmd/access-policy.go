@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	"github.com/google/go-github/v50/github"
+	"github.com/google/go-github/v53/github"
 )
 
 // The list of users/teams, their permissions, and a strategy that should be applied.
