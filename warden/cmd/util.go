@@ -21,7 +21,7 @@ func loadPolicyFile(customPath string) (*PolicyFile, []byte, error) {
 
 	yamlContent, err = loadYAMLFile(customPath, "policy.yml")
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("./policy.yml' was not found. The file either doesn't exist, you're in the wrong directory, or the '--policyFile' flag needs to be set.")
 	}
 
 	err = yaml.Unmarshal(yamlContent, &file)
