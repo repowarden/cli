@@ -9,7 +9,7 @@ import (
 	"golang.org/x/exp/slices"
 	"golang.org/x/oauth2"
 
-	"github.com/google/go-github/v50/github"
+	"github.com/google/go-github/v53/github"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
